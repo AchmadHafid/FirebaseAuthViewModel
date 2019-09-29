@@ -1,0 +1,2 @@
+include ':app', ':firebase-auth-view-model'
+rootProject.name='FirebaseAuthViewModel'

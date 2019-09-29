@@ -1,0 +1,53 @@
+<resources>
+    <string name="app_name" translatable="false">FirebaseAuth ViewModel</string>
+    <string name="web_client_id" translatable="false">REPLACE WITH YOUR OWN WEB CLIENT ID WHICH IS AVAILABLE ON GCP CONSOLE</string>
+
+    <!-- region Common Wording -->
+
+    <string name="logout">Logout</string>
+    <string name="login">Login</string>
+
+    <!-- endregion -->
+
+    <!-- region Activity Title -->
+
+    <string name="activity_anonymous_sign_in_title">Anonymous Sign In</string>
+    <string name="activity_email_sign_in_title">Email Sign In</string>
+    <string name="activity_google_sign_in_title">Google Sign In</string>
+    <string name="activity_phone_sign_in_title">Phone Sign In</string>
+
+    <!-- endregion -->
+    <!-- region Main Activity -->
+
+    <string name="btn_anonymous_sign_in_demo">Anonymous Sign In</string>
+    <string name="btn_google_sign_in_demo">Google Sign In</string>
+    <string name="btn_email_sign_in_demo">Email Sign In</string>
+    <string name="btn_phone_sign_in_demo">Phone Sign In</string>
+
+    <!-- endregion -->
+    <!-- region Email Sign In Activity -->
+
+    <string name="btn_create_user">Create User</string>
+    <string name="input_layout_email_hint">Email</string>
+    <string name="input_layout_password_hint">Password</string>
+
+    <!-- endregion -->
+    <!-- region Google Sign In Activity -->
+
+    <string name="btn_logout">@string/logout</string>
+
+    <!-- endregion -->
+    <!-- region Phone Sign In Activity -->
+
+    <string name="dialog_phone_sign_in_input_phone_title">Your phone?</string>
+    <string name="dialog_phone_sign_in_input_phone_content">Please input a Whatsapp number if you have any &#128522;</string>
+    <string name="dialog_phone_sign_in_input_phone_format">{+}[0000]-[0000]-[0099]-[999]</string>
+    <string name="dialog_phone_sign_in_input_phone_pre_fill">08</string>
+    <string name="dialog_phone_sign_in_input_otp_title">OTP code? &#129488;</string>
+    <string name="dialog_phone_sign_in_input_otp_content">Please check your SMS inbox</string>
+    <string name="dialog_phone_sign_in_input_otp_format">[000000]</string>
+    <string name="dialog_phone_sign_in_progress_title">Please wait…</string>
+
+    <!-- endregion -->
+
+</resources>
