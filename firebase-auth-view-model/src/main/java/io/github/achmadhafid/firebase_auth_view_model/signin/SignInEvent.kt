@@ -4,10 +4,10 @@ class SignInEvent<out E : SignInException>(private val value: SignInState<E>) {
 
     private var hasBeenConsumed = false
 
-    fun getState(): SignInState<E> = when (value) {
+    fun getState(ignoreTerminalStateIfHasBeenConsumed: Boolean = true): SignInState<E> = when (value) {
         is SignInState.OnFailed,
         is SignInState.OnSuccess -> {
-            if (hasBeenConsumed) SignInState.Empty
+            if (hasBeenConsumed && ignoreTerminalStateIfHasBeenConsumed) SignInState.Empty
             else {
                 hasBeenConsumed = true
                 value

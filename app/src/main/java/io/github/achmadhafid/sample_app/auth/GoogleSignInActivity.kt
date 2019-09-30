@@ -86,17 +86,17 @@ class GoogleSignInActivity : BaseActivity(R.layout.activity_google_sign_in), Goo
                 }
                 SignInState.OnProgress -> {
                     /* The API call is being made, you may want to show some progress view here */
-                    /* This is a normal event, it can be consumed multiple times */
+                    /* This is a normal state, it can be consumed multiple times */
                     "Please wait..."
                 }
                 is SignInState.OnSuccess -> {
                     /* Sign in is successful! */
-                    /* This is a single event, it can only be consumed once */
+                    /* This is a terminal state, most of the time it should be consumed only once */
                     "Sign in success!"
                 }
                 is SignInState.OnFailed -> {
                     /* Sign in is failed */
-                    /* This is a single event, it can only be consumed once */
+                    /* This is a terminal state, most of the time it should be consumed only once */
                     /* Use below construct to extract the exception */
                     when (val signInException = state.exception) {
                         GoogleSignInException.Canceled -> "Unknown"
