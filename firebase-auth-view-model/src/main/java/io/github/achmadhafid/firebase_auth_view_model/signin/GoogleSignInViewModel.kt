@@ -97,9 +97,8 @@ fun <T> T.onSignInByGoogleResult(
 fun <T> T.observeGoogleSignIn(
     observer: (GoogleSignInEvent) -> Unit
 ) where T : GoogleSignInExtensions, T : Fragment {
-    signInViewModel.event.observe(this, observer)
+    signInViewModel.event.observe(viewLifecycleOwner, observer)
 }
-
 
 //endregion
 

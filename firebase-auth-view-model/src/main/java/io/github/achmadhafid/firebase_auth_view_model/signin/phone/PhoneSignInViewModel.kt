@@ -3,11 +3,7 @@ package io.github.achmadhafid.firebase_auth_view_model.signin.phone
 import android.content.Context
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.observe
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthException
@@ -18,14 +14,9 @@ import io.github.achmadhafid.firebase_auth_view_model.FirebaseAuthExtensions
 import io.github.achmadhafid.firebase_auth_view_model.auth
 import io.github.achmadhafid.firebase_auth_view_model.signin.PhoneSignInException
 import io.github.achmadhafid.zpack.ktx.getViewModel
-import io.github.achmadhafid.zpack.ktx.getViewModelWithActivityScope
 import io.github.achmadhafid.zpack.ktx.isConnected
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -207,6 +198,6 @@ private val FragmentActivity.signInViewModel
     get() = getViewModel<PhoneSignInViewModel>()
 
 private val Fragment.signInViewModel
-    get() = getViewModelWithActivityScope<PhoneSignInViewModel>()
+    get() = getViewModel<PhoneSignInViewModel>()
 
 //endregion

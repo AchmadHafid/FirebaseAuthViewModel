@@ -31,7 +31,6 @@ sealed class GoogleSignInException : SignInException() {
         GoogleSignInException()
 }
 
-
 sealed class PhoneSignInException : SignInException() {
     object Canceled : PhoneSignInException()
     object Unknown : PhoneSignInException()
@@ -44,4 +43,3 @@ sealed class PhoneSignInException : SignInException() {
     data class WrappedFirebaseException(val firebaseException: FirebaseException) :
         PhoneSignInException()
 }
-

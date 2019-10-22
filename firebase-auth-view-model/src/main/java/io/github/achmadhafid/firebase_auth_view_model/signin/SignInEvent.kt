@@ -17,6 +17,6 @@ class SignInEvent<out E : SignInException>(private val value: SignInState<E>) {
     }
 }
 
-internal typealias AnonymousSignInEvent  = SignInEvent<AnonymousSignInException>
-internal typealias GoogleSignInEvent     = SignInEvent<GoogleSignInException>
-internal typealias EmailSignInEvent      = SignInEvent<EmailSignInException>
+internal typealias AnonymousSignInEvent = SignInEvent<AnonymousSignInException>
+internal typealias GoogleSignInEvent    = SignInEvent<GoogleSignInException>
+internal typealias EmailSignInEvent     = SignInEvent<EmailSignInException>
