@@ -3,6 +3,7 @@ package io.github.achmadhafid.sample_app.auth
 import android.app.Dialog
 import android.os.Bundle
 import com.google.android.material.button.MaterialButton
+import com.orhanobut.logger.Logger
 import io.github.achmadhafid.firebase_auth_view_model.isSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.isSignedOut
 import io.github.achmadhafid.firebase_auth_view_model.observeAuthState
@@ -79,10 +80,12 @@ class PhoneSignInActivity : BaseActivity(R.layout.activity_phone_sign_in), Phone
 
         observeAuthState {
             onSignedIn {
+                Logger.d("On signed IN called")
                 toastShort("User signed In")
                 btnAuth.setTextRes(R.string.logout)
             }
             onSignedOut {
+                Logger.d("On signed OUT called")
                 toastShort("User signed out")
                 btnAuth.setTextRes(R.string.login)
             }

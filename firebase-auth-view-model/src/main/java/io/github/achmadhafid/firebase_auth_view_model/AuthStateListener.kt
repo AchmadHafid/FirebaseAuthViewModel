@@ -11,11 +11,17 @@ data class AuthStateListener(
 //region Kotlin DSL builder
 
 fun AuthStateListener.onSignedIn(callback: (FirebaseUser) -> Unit) {
-    onSignInListener = callback
+    onSignInListener = { user ->
+        callback(user)
+        onAnyListener()
+    }
 }
 
 fun AuthStateListener.onSignedOut(callback: () -> Unit) {
-    onSignOutListener = callback
+    onSignOutListener = {
+        callback()
+        onAnyListener()
+    }
 }
 
 fun AuthStateListener.onAny(callback: () -> Unit) {

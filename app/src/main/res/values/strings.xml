@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">FirebaseAuth ViewModel</string>
-    <string name="web_client_id" translatable="false">REPLACE WITH YOUR OWN WEB CLIENT ID WHICH IS AVAILABLE ON GCP CONSOLE</string>
+<!--    <string name="web_client_id" translatable="false">REPLACE WITH YOUR OWN WEB CLIENT ID WHICH IS AVAILABLE ON GCP CONSOLE</string>-->
+    <string name="web_client_id" translatable="false">584415134674-bdamtfudn1v8riij3vlhqhg9rmfv50cp.apps.googleusercontent.com</string>
 
     <!-- region Common Wording -->
 

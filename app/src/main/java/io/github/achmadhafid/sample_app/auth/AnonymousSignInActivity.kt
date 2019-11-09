@@ -2,24 +2,12 @@ package io.github.achmadhafid.sample_app.auth
 
 import android.os.Bundle
 import com.google.android.material.button.MaterialButton
-import io.github.achmadhafid.firebase_auth_view_model.isSignedIn
-import io.github.achmadhafid.firebase_auth_view_model.isSignedOut
-import io.github.achmadhafid.firebase_auth_view_model.observeAuthState
-import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
-import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
-import io.github.achmadhafid.firebase_auth_view_model.signOut
-import io.github.achmadhafid.firebase_auth_view_model.signin.AnonymousSignInException
-import io.github.achmadhafid.firebase_auth_view_model.signin.AnonymousSignInExtensions
-import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.observeAnonymousSignIn
-import io.github.achmadhafid.firebase_auth_view_model.signin.signInAnonymously
+import com.orhanobut.logger.Logger
+import io.github.achmadhafid.firebase_auth_view_model.*
+import io.github.achmadhafid.firebase_auth_view_model.signin.*
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
-import io.github.achmadhafid.zpack.ktx.bindView
-import io.github.achmadhafid.zpack.ktx.onSingleClick
-import io.github.achmadhafid.zpack.ktx.setMaterialToolbar
-import io.github.achmadhafid.zpack.ktx.setTextRes
-import io.github.achmadhafid.zpack.ktx.toastShort
+import io.github.achmadhafid.zpack.ktx.*
 
 class AnonymousSignInActivity : BaseActivity(R.layout.activity_anonymous_sign_in),
     AnonymousSignInExtensions {
@@ -54,10 +42,12 @@ class AnonymousSignInActivity : BaseActivity(R.layout.activity_anonymous_sign_in
 
         observeAuthState {
             onSignedIn {
+                Logger.d("On signed IN called")
                 toastShort("User signed In")
                 btnAuth.setTextRes(R.string.logout)
             }
             onSignedOut {
+                Logger.d("On signed OUT called")
                 toastShort("User signed out")
                 btnAuth.setTextRes(R.string.login)
             }

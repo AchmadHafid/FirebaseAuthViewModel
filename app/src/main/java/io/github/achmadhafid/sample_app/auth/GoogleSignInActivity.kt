@@ -4,29 +4,20 @@ import android.content.Intent
 import android.os.Bundle
 import com.google.android.gms.common.SignInButton
 import com.google.android.material.button.MaterialButton
+import com.orhanobut.logger.Logger
 import io.github.achmadhafid.firebase_auth_view_model.observeAuthState
 import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
 import io.github.achmadhafid.firebase_auth_view_model.signOut
-import io.github.achmadhafid.firebase_auth_view_model.signin.GoogleSignInException
-import io.github.achmadhafid.firebase_auth_view_model.signin.GoogleSignInExtensions
-import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.observeGoogleSignIn
-import io.github.achmadhafid.firebase_auth_view_model.signin.onSignInByGoogleResult
-import io.github.achmadhafid.firebase_auth_view_model.signin.startGoogleSignInActivity
+import io.github.achmadhafid.firebase_auth_view_model.signin.*
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
-import io.github.achmadhafid.zpack.ktx.bindView
-import io.github.achmadhafid.zpack.ktx.gone
-import io.github.achmadhafid.zpack.ktx.onSingleClick
-import io.github.achmadhafid.zpack.ktx.setMaterialToolbar
-import io.github.achmadhafid.zpack.ktx.show
-import io.github.achmadhafid.zpack.ktx.stringRes
-import io.github.achmadhafid.zpack.ktx.toastShort
+import io.github.achmadhafid.zpack.ktx.*
 
 private const val REQUEST_CODE = 1234
 
-class GoogleSignInActivity : BaseActivity(R.layout.activity_google_sign_in), GoogleSignInExtensions {
+class GoogleSignInActivity : BaseActivity(R.layout.activity_google_sign_in),
+    GoogleSignInExtensions {
 
     //region View Binding
 
@@ -64,11 +55,13 @@ class GoogleSignInActivity : BaseActivity(R.layout.activity_google_sign_in), Goo
 
         observeAuthState {
             onSignedIn {
+                Logger.d("On signed IN called")
                 toastShort("User signed In")
                 btnLogin.gone()
                 btnLogout.show()
             }
             onSignedOut {
+                Logger.d("On signed OUT called")
                 toastShort("User signed out")
                 btnLogout.gone()
                 btnLogin.show()

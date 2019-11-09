@@ -4,6 +4,7 @@ import android.os.Bundle
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.orhanobut.logger.Logger
 import io.github.achmadhafid.firebase_auth_view_model.isSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.isSignedOut
 import io.github.achmadhafid.firebase_auth_view_model.observeAuthState
@@ -72,6 +73,7 @@ class EmailSignInActivity : BaseActivity(R.layout.activity_email_sign_in), Email
 
         observeAuthState {
             onSignedIn {
+                Logger.d("On signed IN called")
                 toastShort("User signed In")
                 btnAuth.setTextRes(R.string.logout)
                 btnCreateUser.isEnabled = false
@@ -79,6 +81,7 @@ class EmailSignInActivity : BaseActivity(R.layout.activity_email_sign_in), Email
                 inputLayoutPassword.isEnabled = false
             }
             onSignedOut {
+                Logger.d("On signed OUT called")
                 toastShort("User signed out")
                 btnAuth.setTextRes(R.string.login)
                 btnCreateUser.isEnabled = true
