@@ -28,9 +28,9 @@ dependencies {
     implementation deps.material
     implementation deps.constraint_layout
 
+    implementation deps.pretty_logger
     implementation deps.simple_pref
     implementation deps.lottie_dialog
-    implementation 'com.orhanobut:logger:2.2.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

@@ -1,9 +1,15 @@
 package io.github.achmadhafid.sample_app
 
+import android.app.Dialog
 import android.view.Menu
 import android.view.MenuItem
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
+import io.github.achmadhafid.lottie_dialog.lottieLoadingDialog
+import io.github.achmadhafid.lottie_dialog.model.LottieDialogTheme
+import io.github.achmadhafid.lottie_dialog.model.LottieDialogType
+import io.github.achmadhafid.lottie_dialog.withAnimation
+import io.github.achmadhafid.lottie_dialog.withTitle
 import io.github.achmadhafid.simplepref.SimplePref
 import io.github.achmadhafid.simplepref.simplePref
 import io.github.achmadhafid.zpack.ktx.toggleTheme
@@ -12,7 +18,17 @@ abstract class BaseActivity(@LayoutRes layout: Int): AppCompatActivity(layout), 
 
     //region Preference
 
-    private var appTheme: Int? by simplePref()
+    private var appTheme: Int? by simplePref("app_theme")
+    protected var authCallbackMode by simplePref("auth_callback_mode") { false }
+
+    //endregion
+    //region View
+
+    private var dialog: Dialog? = null
+        set(value) {
+            field?.dismiss()
+            field = value
+        }
 
     //endregion
     //region Lifecycle Callback
@@ -30,6 +46,33 @@ abstract class BaseActivity(@LayoutRes layout: Int): AppCompatActivity(layout), 
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onBackPressed() {
+        if (this::class.java == MainActivity::class.java) {
+            super.onBackPressed()
+        } else {
+            onNavigateUp()
+        }
+    }
+
+    //endregion
+    //region UI Helper
+
+    protected fun showLoadingDialog() {
+        dialog = lottieLoadingDialog {
+            theme = LottieDialogTheme.DAY_NIGHT
+            type = LottieDialogType.BOTTOM_SHEET
+            withAnimation {
+                fileRes = R.raw.lottie_animation_loading
+                animationSpeed = 2f
+            }
+            withTitle("Please wait...")
+        }
+    }
+
+    protected fun dismissDialog() {
+        dialog = null
     }
 
     //endregion

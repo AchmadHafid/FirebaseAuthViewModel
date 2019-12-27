@@ -1,33 +1,31 @@
 package io.github.achmadhafid.firebase_auth_view_model
 
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.observe
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
-class AuthStateLiveData(
+private class AuthStateLiveData(
     private val lifecycle: Lifecycle,
-    private val auth: FirebaseAuth,
-    private val removeAuthListenerWhenLiveDataInactive: Boolean
+    private val recyclerOnInactive: Boolean
 ) : LiveData<FirebaseUser?>(), LifecycleObserver, FirebaseAuth.AuthStateListener {
-
-    private var isListenerAttached = false
 
     init {
         lifecycle.addObserver(this)
     }
 
     override fun onActive() {
-        if (!isListenerAttached) {
-            auth.addAuthStateListener(this)
-            isListenerAttached = true
-        }
+        attachListener()
     }
 
     override fun onInactive() {
-        if (removeAuthListenerWhenLiveDataInactive) {
-            auth.removeAuthStateListener(this)
-            isListenerAttached = false
+        if (recyclerOnInactive) {
+            detachListener()
         }
     }
 
@@ -38,44 +36,49 @@ class AuthStateLiveData(
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     fun onDestroy() {
         lifecycle.removeObserver(this)
-        auth.removeAuthStateListener(this)
-        isListenerAttached = false
+        detachListener()
     }
+
+    //region State handler to avoid listener duplication
+
+    private var isListenerAttached = false
+
+    private fun attachListener() {
+        if (!isListenerAttached) {
+            fireAuth.addAuthStateListener(this)
+            isListenerAttached = true
+        }
+    }
+
+    private fun detachListener() {
+        if (isListenerAttached) {
+            fireAuth.removeAuthStateListener(this)
+            isListenerAttached = false
+        }
+    }
+
+    //endregion
 
 }
 
 //region Consumer API via extension functions
 
-fun LifecycleOwner.observeAuthState(
-    auth: FirebaseAuth,
-    removeAuthListenerWhenLiveDataInactive: Boolean = false,
+fun LifecycleOwner.observeFireAuthState(
+    recyclerOnInactive: Boolean = true,
     builder: AuthStateListener.() -> Unit
 ) {
     val listener = AuthStateListener().apply(builder)
-    AuthStateLiveData(
-        lifecycle,
-        auth,
-        removeAuthListenerWhenLiveDataInactive
-    ).observe(this) { user ->
+    val authStateLiveData = AuthStateLiveData(lifecycle, recyclerOnInactive)
+
+    authStateLiveData.observe(this) { user ->
         if (user != null) listener.onSignInListener(user)
         else listener.onSignOutListener()
     }
 }
 
-fun <T> T.observeAuthState(
-    removeAuthListenerWhenLiveDataInactive: Boolean = false,
+fun Fragment.observeFireAuthState(
+    recyclerOnInactive: Boolean = true,
     builder: AuthStateListener.() -> Unit
-) where T : FirebaseAuthExtensions, T : LifecycleOwner {
-    observeAuthState(auth, removeAuthListenerWhenLiveDataInactive, builder)
-}
-
-fun <T> T.observeAuthState(
-    removeAuthListenerWhenLiveDataInactive: Boolean = false,
-    builder: AuthStateListener.() -> Unit
-) where T : FirebaseAuthExtensions, T : Fragment {
-    viewLifecycleOwnerLiveData.observe(this) { lifecycleOwner ->
-        lifecycleOwner?.observeAuthState(auth, removeAuthListenerWhenLiveDataInactive, builder)
-    }
-}
+) = viewLifecycleOwner.observeFireAuthState(recyclerOnInactive, builder)
 
 //endregion

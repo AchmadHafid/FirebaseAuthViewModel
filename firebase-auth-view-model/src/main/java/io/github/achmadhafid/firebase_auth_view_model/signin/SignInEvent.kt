@@ -4,17 +4,12 @@ class SignInEvent<out E : SignInException>(private val value: SignInState<E>) {
 
     private var hasBeenConsumed = false
 
-    fun getState(ignoreTerminalStateIfHasBeenConsumed: Boolean = true): SignInState<E> = when (value) {
-        is SignInState.OnFailed,
-        is SignInState.OnSuccess -> {
-            if (hasBeenConsumed && ignoreTerminalStateIfHasBeenConsumed) SignInState.Empty
-            else {
-                hasBeenConsumed = true
-                value
-            }
+    val state: Pair<SignInState<E>, Boolean>
+        get() {
+            val ret = value to hasBeenConsumed
+            hasBeenConsumed = true
+            return ret
         }
-        else -> value
-    }
 }
 
 internal typealias AnonymousSignInEvent = SignInEvent<AnonymousSignInException>

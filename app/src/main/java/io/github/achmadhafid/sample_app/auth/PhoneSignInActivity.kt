@@ -4,20 +4,18 @@ import android.app.Dialog
 import android.os.Bundle
 import com.google.android.material.button.MaterialButton
 import com.orhanobut.logger.Logger
-import io.github.achmadhafid.firebase_auth_view_model.isSignedIn
-import io.github.achmadhafid.firebase_auth_view_model.isSignedOut
-import io.github.achmadhafid.firebase_auth_view_model.observeAuthState
+import io.github.achmadhafid.firebase_auth_view_model.fireAuth
+import io.github.achmadhafid.firebase_auth_view_model.fireUser
+import io.github.achmadhafid.firebase_auth_view_model.observeFireAuthState
 import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
-import io.github.achmadhafid.firebase_auth_view_model.signOut
 import io.github.achmadhafid.firebase_auth_view_model.signin.PhoneSignInException
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.PhoneSignInExtensions
 import io.github.achmadhafid.firebase_auth_view_model.signin.phone.PhoneSignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.cancelPhoneSignIn
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.observePhoneSignIn
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.startPhoneSignIn
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.submitOtp
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.submitPhone
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.cancelFireSignInByPhone
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.observeFireSignInByPhone
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.onFireSignInByPhoneSubmitOtp
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.onFireSignInByPhoneSubmitPhone
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.startFireSignInByPhone
 import io.github.achmadhafid.lottie_dialog.lottieInputDialog
 import io.github.achmadhafid.lottie_dialog.lottieLoadingDialog
 import io.github.achmadhafid.lottie_dialog.model.LottieDialogInput
@@ -38,7 +36,7 @@ import io.github.achmadhafid.zpack.ktx.setMaterialToolbar
 import io.github.achmadhafid.zpack.ktx.setTextRes
 import io.github.achmadhafid.zpack.ktx.toastShort
 
-class PhoneSignInActivity : BaseActivity(R.layout.activity_phone_sign_in), PhoneSignInExtensions {
+class PhoneSignInActivity : BaseActivity(R.layout.activity_phone_sign_in) {
 
     //region View
 
@@ -64,29 +62,26 @@ class PhoneSignInActivity : BaseActivity(R.layout.activity_phone_sign_in), Phone
         //region setup auth button
 
         btnAuth.onSingleClick {
-            when {
-                isSignedIn -> signOut()
-                isSignedOut -> {
-                    val initialPhone = getString(R.string.dialog_phone_sign_in_input_phone_pre_fill)
-                    val languageCode = "en"
-                    val timeout      = getLongRes(R.integer.phone_sign_in_timeout)
-                    startPhoneSignIn(initialPhone, languageCode, timeout)
-                }
+            fireUser?.let {
+                fireAuth.signOut()
+            } ?: run {
+                val initialPhone = getString(R.string.dialog_phone_sign_in_input_phone_pre_fill)
+                val languageCode = "en"
+                val timeout = getLongRes(R.integer.phone_sign_in_timeout)
+                startFireSignInByPhone(initialPhone, languageCode, timeout)
             }
         }
 
         //endregion
         //region observe auth state
 
-        observeAuthState {
+        observeFireAuthState(authCallbackMode) {
             onSignedIn {
-                Logger.d("On signed IN called")
-                toastShort("User signed In")
+                Logger.d("User signed in")
                 btnAuth.setTextRes(R.string.logout)
             }
             onSignedOut {
-                Logger.d("On signed OUT called")
-                toastShort("User signed out")
+                Logger.d("User signed out")
                 btnAuth.setTextRes(R.string.login)
             }
         }
@@ -94,30 +89,35 @@ class PhoneSignInActivity : BaseActivity(R.layout.activity_phone_sign_in), Phone
         //endregion
         //region observe phone sign in state in view model
 
-        observePhoneSignIn {
-            dialog = when (val state = it.getState()) {
-                PhoneSignInState.Empty -> return@observePhoneSignIn
+        observeFireSignInByPhone {
+            val (state, hasBeenConsumed) = it.state
+            dialog = when (state) {
                 is PhoneSignInState.GetPhoneInput -> showInputPhoneDialog(state.phone)
                 is PhoneSignInState.GetOtpInput -> showInputOtpDialog()
                 PhoneSignInState.RequestingOtp,
                 PhoneSignInState.SigningIn -> showProgressDialog()
-                PhoneSignInState.OnSuccess -> null.also {
-                    toastShort("Phone sign in success!")
-                }
-                is PhoneSignInState.OnFailed -> null.also {
-                    val message = when (val signInException = state.exception) {
-                        PhoneSignInException.Canceled -> "Canceled"
-                        PhoneSignInException.Unknown -> "Unknown"
-                        PhoneSignInException.Offline -> "No internet connection"
-                        PhoneSignInException.RequestOtpTimeout -> "Timeout when requesting OTP code"
-                        PhoneSignInException.SignInTimeout -> "Time out when signing in"
-                        PhoneSignInException.InvalidRequest -> "Invalid (phone number) request"
-                        is PhoneSignInException.InvalidOtp -> "Invalid OTP"
-                        PhoneSignInException.QuotaExceeded -> "Quota exceeded"
-                        is PhoneSignInException.WrappedFirebaseException ->
-                            signInException.firebaseException.message
+                PhoneSignInState.OnSuccess -> {
+                    if (hasBeenConsumed) return@observeFireSignInByPhone
+                    else null.also {
+                        toastShort("Phone sign in success!")
                     }
-                    toastShort("Phone sign in error: $message")
+                }
+                is PhoneSignInState.OnFailed -> {
+                    if (hasBeenConsumed) return@observeFireSignInByPhone
+                    else null.also {
+                        val message = when (val signInException = state.exception) {
+                            PhoneSignInException.Canceled -> "Canceled"
+                            PhoneSignInException.Unknown -> "Unknown"
+                            PhoneSignInException.Offline -> "No internet connection"
+                            PhoneSignInException.RequestOtpTimeout -> "Timeout when requesting OTP code"
+                            PhoneSignInException.SignInTimeout -> "Time out when signing in"
+                            PhoneSignInException.InvalidRequest -> "Invalid (phone number) request"
+                            is PhoneSignInException.InvalidOtp -> "Invalid OTP"
+                            PhoneSignInException.QuotaExceeded -> "Quota exceeded"
+                            is PhoneSignInException.FireException -> signInException.fireException.message
+                        }
+                        toastShort("Phone sign in error: $message")
+                    }
                 }
             }
         }
@@ -142,10 +142,10 @@ class PhoneSignInActivity : BaseActivity(R.layout.activity_phone_sign_in), Phone
             onTouchOutside = false
         }
         onValidInput {
-            submitPhone(it)
+            onFireSignInByPhoneSubmitPhone(it)
         }
         onCancel {
-            cancelPhoneSignIn()
+            cancelFireSignInByPhone()
         }
     }
 
@@ -162,10 +162,10 @@ class PhoneSignInActivity : BaseActivity(R.layout.activity_phone_sign_in), Phone
             onTouchOutside = false
         }
         onValidInput {
-            submitOtp(it)
+            onFireSignInByPhoneSubmitOtp(it)
         }
         onCancel {
-            cancelPhoneSignIn()
+            cancelFireSignInByPhone()
         }
     }
 
@@ -173,8 +173,8 @@ class PhoneSignInActivity : BaseActivity(R.layout.activity_phone_sign_in), Phone
         type = LottieDialogType.BOTTOM_SHEET
         showTimeOutProgress = false
         withAnimation {
-            fileRes         = R.raw.lottie_animation_loading
-            animationSpeed  = 2.0f
+            fileRes = R.raw.lottie_animation_loading
+            animationSpeed = 2.0f
             showCloseButton = false
         }
         withTitle(R.string.dialog_phone_sign_in_progress_title)

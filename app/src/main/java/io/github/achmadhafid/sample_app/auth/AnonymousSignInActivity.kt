@@ -3,14 +3,24 @@ package io.github.achmadhafid.sample_app.auth
 import android.os.Bundle
 import com.google.android.material.button.MaterialButton
 import com.orhanobut.logger.Logger
-import io.github.achmadhafid.firebase_auth_view_model.*
-import io.github.achmadhafid.firebase_auth_view_model.signin.*
+import io.github.achmadhafid.firebase_auth_view_model.fireAuth
+import io.github.achmadhafid.firebase_auth_view_model.fireUser
+import io.github.achmadhafid.firebase_auth_view_model.observeFireAuthState
+import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
+import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
+import io.github.achmadhafid.firebase_auth_view_model.signin.AnonymousSignInException
+import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
+import io.github.achmadhafid.firebase_auth_view_model.signin.observeFireSignInAnonymously
+import io.github.achmadhafid.firebase_auth_view_model.signin.startFireSignInAnonymously
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
-import io.github.achmadhafid.zpack.ktx.*
+import io.github.achmadhafid.zpack.ktx.bindView
+import io.github.achmadhafid.zpack.ktx.onSingleClick
+import io.github.achmadhafid.zpack.ktx.setMaterialToolbar
+import io.github.achmadhafid.zpack.ktx.setTextRes
+import io.github.achmadhafid.zpack.ktx.toastShort
 
-class AnonymousSignInActivity : BaseActivity(R.layout.activity_anonymous_sign_in),
-    AnonymousSignInExtensions {
+class AnonymousSignInActivity : BaseActivity(R.layout.activity_anonymous_sign_in) {
 
     //region View Binding
 
@@ -31,24 +41,21 @@ class AnonymousSignInActivity : BaseActivity(R.layout.activity_anonymous_sign_in
         //region setup action widget
 
         btnAuth.onSingleClick {
-            when {
-                isSignedIn -> signOut()
-                isSignedOut -> signInAnonymously()
-            }
+            fireUser?.let {
+                fireAuth.signOut()
+            } ?: startFireSignInAnonymously()
         }
 
         //endregion
         //region observe auth state
 
-        observeAuthState {
+        observeFireAuthState(authCallbackMode) {
             onSignedIn {
-                Logger.d("On signed IN called")
-                toastShort("User signed In")
+                Logger.d("User signed in")
                 btnAuth.setTextRes(R.string.logout)
             }
             onSignedOut {
-                Logger.d("On signed OUT called")
-                toastShort("User signed out")
+                Logger.d("User signed out")
                 btnAuth.setTextRes(R.string.login)
             }
         }
@@ -56,37 +63,27 @@ class AnonymousSignInActivity : BaseActivity(R.layout.activity_anonymous_sign_in
         //endregion
         //region observe sign in progress
 
-        observeAnonymousSignIn {
-            val message = when (val state = it.getState()) {
-                SignInState.Empty -> {
-                    /* transient state, no need to do anything */
-                    return@observeAnonymousSignIn
+        observeFireSignInAnonymously {
+            val (state, hasBeenConsumed) = it.state
+            when (state) {
+                SignInState.OnProgress -> showLoadingDialog()
+                is SignInState.OnSuccess -> if (!hasBeenConsumed) {
+                    dismissDialog()
+                    toastShort("Sign in success!")
                 }
-                SignInState.OnProgress -> {
-                    /* The API call is being made, you may want to show some progress view here */
-                    /* This is a normal state, it can be consumed multiple times */
-                    "Please wait..."
-                }
-                is SignInState.OnSuccess -> {
-                    /* Sign in is successful! */
-                    /* This is a terminal state, most of the time it should be consumed only once */
-                    "Sign in success!"
-                }
-                is SignInState.OnFailed -> {
-                    /* Sign in is failed */
-                    /* This is a terminal state, most of the time it should be consumed only once */
-                    /* Use below construct to extract the exception */
-                    when (val signInException = state.exception) {
+                is SignInState.OnFailed -> if (!hasBeenConsumed) {
+                    dismissDialog()
+                    val message = when (val signInException = state.exception) {
                         AnonymousSignInException.Unknown -> "Unknown"
                         AnonymousSignInException.Offline -> "Internet connection unavailable"
                         AnonymousSignInException.Timeout -> "Connection time out"
-                        is AnonymousSignInException.WrappedFirebaseAuthException -> {
-                            signInException.firebaseAuthException.message!!
+                        is AnonymousSignInException.FireAuthException -> {
+                            signInException.fireException.message!!
                         }
                     }
+                    toastShort(message)
                 }
             }
-            toastShort(message)
         }
 
         //endregion

@@ -3,14 +3,14 @@ package io.github.achmadhafid.sample_app
 import android.app.Application
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.Logger
+import io.github.achmadhafid.simplepref.lifecycle.SimplePrefApplication
 import io.github.achmadhafid.simplepref.lifecycle.SimplePrefLifecycleOwner
-import io.github.achmadhafid.simplepref.lifecycle.SimplePrefLifecycleOwnerImpl
 import io.github.achmadhafid.simplepref.simplePref
 import io.github.achmadhafid.zpack.ktx.applyTheme
 
-class App : Application(), SimplePrefLifecycleOwner by SimplePrefLifecycleOwnerImpl() {
+class App : Application(), SimplePrefLifecycleOwner by SimplePrefApplication() {
 
-    private var appTheme: Int? by simplePref()
+    private var appTheme: Int? by simplePref("app_theme")
 
     override fun onCreate() {
         super.onCreate()

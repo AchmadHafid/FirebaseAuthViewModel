@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    tools:ignore="MissingConstraints"
     tools:context=".MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -29,10 +30,13 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.constraintlayout.helper.widget.Flow
-            android:layout_width="wrap_content"
+            android:id="@+id/flow"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:constraint_referenced_ids="btn_anonymous_sign_in_demo,btn_google_sign_in_demo,btn_email_sign_in_demo,btn_phone_sign_in_demo"
+            android:layout_margin="@dimen/large"
+            app:constraint_referenced_ids="btn_anonymous_sign_in_demo,btn_email_sign_in_demo,btn_phone_sign_in_demo,btn_google_sign_in_demo"
+            app:flow_maxElementsWrap="1"
+            app:flow_wrapMode="chain"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -40,32 +44,39 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_anonymous_sign_in_demo"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
-            android:text="@string/btn_anonymous_sign_in_demo"
-            tools:ignore="MissingConstraints" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_google_sign_in_demo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_google_sign_in_demo"
-            tools:ignore="MissingConstraints" />
+            android:text="@string/btn_anonymous_sign_in_demo" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_email_sign_in_demo"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
-            android:text="@string/btn_email_sign_in_demo"
-            tools:ignore="MissingConstraints" />
-
+            android:text="@string/btn_email_sign_in_demo" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_phone_sign_in_demo"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
-            android:text="@string/btn_phone_sign_in_demo"
-            tools:ignore="MissingConstraints" />
+            android:text="@string/btn_phone_sign_in_demo" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_google_sign_in_demo"
+            android:layout_width="@dimen/match_constraint"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_google_sign_in_demo" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cb_auth_callback_mode"
+            android:layout_width="@dimen/match_constraint"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/large"
+            android:paddingStart="@dimen/small"
+            app:layout_constraintTop_toBottomOf="@+id/flow"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:text="Always check auth state when component's lifecycle become active" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

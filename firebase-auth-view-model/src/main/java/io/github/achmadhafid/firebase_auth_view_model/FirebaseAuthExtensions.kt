@@ -1,22 +1,19 @@
 package io.github.achmadhafid.firebase_auth_view_model
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 
-interface FirebaseAuthExtensions
-
-val FirebaseAuthExtensions.auth by lazy {
+val fireAuth by lazy {
     FirebaseAuth.getInstance()
 }
 
-inline val FirebaseAuthExtensions.user
-    get() = auth.currentUser
+inline val fireUser
+    get() = fireAuth.currentUser
 
-inline val FirebaseAuthExtensions.isSignedIn
-    get() = user != null
+inline val FirebaseUser?.isSignedIn
+    get() = this != null
 
-inline val FirebaseAuthExtensions.isSignedOut
-    get() = user == null
+inline val FirebaseUser?.isSignedOut
+    get() = this == null
 
-fun FirebaseAuthExtensions.signOut() {
-    auth.signOut()
-}
+internal var isSigningIn: Boolean = false

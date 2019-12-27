@@ -5,17 +5,15 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.orhanobut.logger.Logger
-import io.github.achmadhafid.firebase_auth_view_model.isSignedIn
-import io.github.achmadhafid.firebase_auth_view_model.isSignedOut
-import io.github.achmadhafid.firebase_auth_view_model.observeAuthState
+import io.github.achmadhafid.firebase_auth_view_model.fireAuth
+import io.github.achmadhafid.firebase_auth_view_model.fireUser
+import io.github.achmadhafid.firebase_auth_view_model.observeFireAuthState
 import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
-import io.github.achmadhafid.firebase_auth_view_model.signOut
 import io.github.achmadhafid.firebase_auth_view_model.signin.EmailSignInException
-import io.github.achmadhafid.firebase_auth_view_model.signin.EmailSignInExtensions
 import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.observeEmailSignIn
-import io.github.achmadhafid.firebase_auth_view_model.signin.signInByEmail
+import io.github.achmadhafid.firebase_auth_view_model.signin.observeFireSignInByEmail
+import io.github.achmadhafid.firebase_auth_view_model.signin.startFireSignInByEmail
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
 import io.github.achmadhafid.zpack.ktx.bindView
@@ -25,7 +23,7 @@ import io.github.achmadhafid.zpack.ktx.setTextRes
 import io.github.achmadhafid.zpack.ktx.toastShort
 import io.github.achmadhafid.zpack.ktx.value
 
-class EmailSignInActivity : BaseActivity(R.layout.activity_email_sign_in), EmailSignInExtensions {
+class EmailSignInActivity : BaseActivity(R.layout.activity_email_sign_in) {
 
     //region View Binding
 
@@ -53,17 +51,16 @@ class EmailSignInActivity : BaseActivity(R.layout.activity_email_sign_in), Email
         btnCreateUser.onSingleClick {
             with(edtEmail.value to edtPassword.value) {
                 if (first.isNotEmpty() && second.isNotEmpty()) {
-                    signInByEmail(first, second, true)
+                    startFireSignInByEmail(first, second, true)
                 }
             }
         }
         btnAuth.onSingleClick {
-            when {
-                isSignedIn -> signOut()
-                isSignedOut -> with(edtEmail.value to edtPassword.value) {
-                    if (first.isNotEmpty() && second.isNotEmpty()) {
-                        signInByEmail(first, second)
-                    }
+            fireUser?.let {
+                fireAuth.signOut()
+            } ?: with(edtEmail.value to edtPassword.value) {
+                if (first.isNotEmpty() && second.isNotEmpty()) {
+                    startFireSignInByEmail(first, second)
                 }
             }
         }
@@ -71,21 +68,19 @@ class EmailSignInActivity : BaseActivity(R.layout.activity_email_sign_in), Email
         //endregion
         //region observe auth state
 
-        observeAuthState {
+        observeFireAuthState(authCallbackMode) {
             onSignedIn {
-                Logger.d("On signed IN called")
-                toastShort("User signed In")
+                Logger.d("User signed in")
                 btnAuth.setTextRes(R.string.logout)
-                btnCreateUser.isEnabled = false
-                inputLayoutEmail.isEnabled = false
+                btnCreateUser.isEnabled       = false
+                inputLayoutEmail.isEnabled    = false
                 inputLayoutPassword.isEnabled = false
             }
             onSignedOut {
-                Logger.d("On signed OUT called")
-                toastShort("User signed out")
+                Logger.d("User signed out")
                 btnAuth.setTextRes(R.string.login)
-                btnCreateUser.isEnabled = true
-                inputLayoutEmail.isEnabled = true
+                btnCreateUser.isEnabled       = true
+                inputLayoutEmail.isEnabled    = true
                 inputLayoutPassword.isEnabled = true
             }
         }
@@ -93,37 +88,27 @@ class EmailSignInActivity : BaseActivity(R.layout.activity_email_sign_in), Email
         //endregion
         //region observe sign in progress
 
-        observeEmailSignIn {
-            val message = when (val state = it.getState()) {
-                SignInState.Empty -> {
-                    /* transient state, no need to do anything */
-                    return@observeEmailSignIn
+        observeFireSignInByEmail {
+            val (state, hasBeenConsumed) = it.state
+            when (state) {
+                SignInState.OnProgress -> showLoadingDialog()
+                is SignInState.OnSuccess -> if (!hasBeenConsumed) {
+                    dismissDialog()
+                    toastShort("Sign in success!")
                 }
-                SignInState.OnProgress -> {
-                    /* The API call is being made, you may want to show some progress view here */
-                    /* This is a normal state, it can be consumed multiple times */
-                    "Please wait..."
-                }
-                is SignInState.OnSuccess -> {
-                    /* Sign in is successful! */
-                    /* This is a terminal state, most of the time it should be consumed only once */
-                    "Sign in success!"
-                }
-                is SignInState.OnFailed -> {
-                    /* Sign in is failed */
-                    /* This is a terminal state, most of the time it should be consumed only once */
-                    /* Use below construct to extract the exception */
-                    when (val signInException = state.exception) {
+                is SignInState.OnFailed -> if (!hasBeenConsumed) {
+                    dismissDialog()
+                    val message = when (val signInException = state.exception) {
                         EmailSignInException.Unknown -> "Unknown"
                         EmailSignInException.Offline -> "Internet connection unavailable"
                         EmailSignInException.Timeout -> "Connection time out"
-                        is EmailSignInException.WrappedFirebaseAuthException -> {
-                            signInException.firebaseAuthException.message!!
+                        is EmailSignInException.FireAuthException -> {
+                            signInException.fireException.message!!
                         }
                     }
+                    toastShort(message)
                 }
             }
-            toastShort(message)
         }
 
         //endregion

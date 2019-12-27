@@ -1,26 +1,34 @@
 package io.github.achmadhafid.firebase_auth_view_model.signin.phone
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.observe
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
-import io.github.achmadhafid.firebase_auth_view_model.FirebaseAuthExtensions
-import io.github.achmadhafid.firebase_auth_view_model.auth
+import io.github.achmadhafid.firebase_auth_view_model.fireAuth
+import io.github.achmadhafid.firebase_auth_view_model.isSigningIn
 import io.github.achmadhafid.firebase_auth_view_model.signin.PhoneSignInException
 import io.github.achmadhafid.zpack.ktx.getViewModel
 import io.github.achmadhafid.zpack.ktx.isConnected
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-internal class PhoneSignInViewModel : ViewModel(), FirebaseAuthExtensions {
+internal class PhoneSignInViewModel : ViewModel() {
 
     private val executor = Executors.newFixedThreadPool(1)
     private val phoneAuthProvider = PhoneAuthProvider.getInstance()
@@ -41,7 +49,7 @@ internal class PhoneSignInViewModel : ViewModel(), FirebaseAuthExtensions {
                 val exception = when (e) {
                     is FirebaseAuthInvalidCredentialsException -> PhoneSignInException.InvalidRequest
                     is FirebaseTooManyRequestsException -> PhoneSignInException.QuotaExceeded
-                    else -> PhoneSignInException.WrappedFirebaseException(e)
+                    else -> PhoneSignInException.FireException(e)
                 }
                 onFailed(exception)
             }
@@ -51,7 +59,7 @@ internal class PhoneSignInViewModel : ViewModel(), FirebaseAuthExtensions {
     private var languageCode: String = "en"
     private var verificationId: String? = null
     private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
-    private val _event = MutableLiveData<PhoneSignInEvent>(PhoneSignInEvent(PhoneSignInState.Empty))
+    private val _event = MutableLiveData<PhoneSignInEvent>()
     internal val event: LiveData<PhoneSignInEvent> = _event
 
     private fun setState(state: PhoneSignInState) {
@@ -67,21 +75,24 @@ internal class PhoneSignInViewModel : ViewModel(), FirebaseAuthExtensions {
             runCatching {
                 withContext(Dispatchers.IO) {
                     withTimeout(timeout) {
-                        auth.signInWithCredential(credential).await()
+                        fireAuth.signInWithCredential(credential).await()
                     }
                 }
             }.onSuccess {
+                isSigningIn = false
                 setState(PhoneSignInState.OnSuccess)
             }.onFailure {
+                isSigningIn = false
                 val exception = when (it) {
                     is TimeoutCancellationException -> PhoneSignInException.SignInTimeout
-                    is FirebaseAuthException -> PhoneSignInException.WrappedFirebaseException(it)
+                    is FirebaseAuthException -> PhoneSignInException.FireException(it)
                     else -> PhoneSignInException.Unknown
                 }
                 onFailed(exception)
             }
         }
         setState(PhoneSignInState.SigningIn)
+        isSigningIn = true
     }
 
     internal fun start(
@@ -97,7 +108,7 @@ internal class PhoneSignInViewModel : ViewModel(), FirebaseAuthExtensions {
 
     internal fun submitPhone(phone: String, context: Context) {
         if (true == context.isConnected) {
-            auth.setLanguageCode(languageCode)
+            fireAuth.setLanguageCode(languageCode)
             phoneAuthProvider.verifyPhoneNumber(
                 phone,
                 timeout, TimeUnit.MILLISECONDS,
@@ -129,63 +140,56 @@ internal class PhoneSignInViewModel : ViewModel(), FirebaseAuthExtensions {
 }
 
 //region Extensions
-
-interface PhoneSignInExtensions : FirebaseAuthExtensions
-
 //region Activity
 
-fun <T> T.observePhoneSignIn(
-    observer: (PhoneSignInEvent) -> Unit
-) where T : PhoneSignInExtensions, T : FragmentActivity {
+fun AppCompatActivity.observeFireSignInByPhone(observer: (PhoneSignInEvent) -> Unit) {
     signInViewModel.event.observe(this, observer)
 }
 
-fun <T> T.startPhoneSignIn(
+fun AppCompatActivity.startFireSignInByPhone(
     initialPhone: String? = null,
     languageCode: String = "en",
     timeout: Long = Long.MAX_VALUE
-) where T : PhoneSignInExtensions, T : FragmentActivity {
+) {
     signInViewModel.start(initialPhone, languageCode, timeout)
 }
 
-fun <T> T.submitPhone(phone: String) where T : PhoneSignInExtensions, T : FragmentActivity {
+fun AppCompatActivity.onFireSignInByPhoneSubmitPhone(phone: String) {
     signInViewModel.submitPhone(phone, this)
 }
 
-fun <T> T.submitOtp(otp: String) where T : PhoneSignInExtensions, T : FragmentActivity {
+fun AppCompatActivity.onFireSignInByPhoneSubmitOtp(otp: String) {
     signInViewModel.submitOtp(otp, this)
 }
 
-fun <T> T.cancelPhoneSignIn() where T : PhoneSignInExtensions, T : FragmentActivity {
+fun AppCompatActivity.cancelFireSignInByPhone() {
     signInViewModel.cancel()
 }
 
 //endregion
 //region Fragment
 
-fun <T> T.observePhoneSignIn(
-    observer: (PhoneSignInEvent) -> Unit
-) where T : PhoneSignInExtensions, T : Fragment {
+fun Fragment.observeFireSignInByPhone(observer: (PhoneSignInEvent) -> Unit) {
     signInViewModel.event.observe(viewLifecycleOwner, observer)
 }
 
-fun <T> T.startPhoneSignIn(
+fun Fragment.startFireSignInByPhone(
     initialPhone: String? = null,
     languageCode: String = "en",
     timeout: Long = Long.MAX_VALUE
-) where T : PhoneSignInExtensions, T : Fragment {
+) {
     signInViewModel.start(initialPhone, languageCode, timeout)
 }
 
-fun <T> T.submitPhone(phone: String) where T : PhoneSignInExtensions, T : Fragment {
+fun Fragment.onFireSignInByPhoneSubmitPhone(phone: String) {
     signInViewModel.submitPhone(phone, requireContext())
 }
 
-fun <T> T.submitOtp(otp: String) where T : PhoneSignInExtensions, T : Fragment {
+fun Fragment.onFireSignInByPhoneSubmitOtp(otp: String) {
     signInViewModel.submitOtp(otp, requireContext())
 }
 
-fun <T> T.cancelPhoneSignIn() where T : PhoneSignInExtensions, T : Fragment {
+fun Fragment.cancelFireSignInByPhone() {
     signInViewModel.cancel()
 }
 
@@ -194,10 +198,10 @@ fun <T> T.cancelPhoneSignIn() where T : PhoneSignInExtensions, T : Fragment {
 //endregion
 //region Internal extensions functions
 
-private val FragmentActivity.signInViewModel
+private inline val AppCompatActivity.signInViewModel
     get() = getViewModel<PhoneSignInViewModel>()
 
-private val Fragment.signInViewModel
+private inline val Fragment.signInViewModel
     get() = getViewModel<PhoneSignInViewModel>()
 
 //endregion

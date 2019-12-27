@@ -1,12 +1,11 @@
 package io.github.achmadhafid.firebase_auth_view_model.signin
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.observe
 import com.google.firebase.auth.FirebaseAuthException
-import io.github.achmadhafid.firebase_auth_view_model.FirebaseAuthExtensions
-import io.github.achmadhafid.firebase_auth_view_model.auth
+import io.github.achmadhafid.firebase_auth_view_model.fireAuth
 import io.github.achmadhafid.zpack.ktx.getViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
@@ -19,59 +18,47 @@ internal class AnonymousSignInViewModel : SignInViewModel<AnonymousSignInExcepti
     override fun parseException(throwable: Throwable): AnonymousSignInException = when (throwable) {
         is AnonymousSignInException -> throwable
         is TimeoutCancellationException -> AnonymousSignInException.Timeout
-        is FirebaseAuthException -> AnonymousSignInException.WrappedFirebaseAuthException(throwable)
+        is FirebaseAuthException -> AnonymousSignInException.FireAuthException(throwable)
         else -> AnonymousSignInException.Unknown
     }
 
     internal fun signInAnonymously(timeout: Long = Long.MAX_VALUE, context: Context? = null) {
         executeSignInTask(timeout, context) {
-            auth.signInAnonymously().await()
+            fireAuth.signInAnonymously().await()
         }
     }
 }
 
 //region Consumer API via extension functions
-
-interface AnonymousSignInExtensions : FirebaseAuthExtensions
-
 //region Activity
 
-fun <T> T.signInAnonymously(
-    timeout: Long = Long.MAX_VALUE
-) where T : AnonymousSignInExtensions, T : FragmentActivity {
-    signInViewModel.signInAnonymously(timeout, this)
+fun AppCompatActivity.observeFireSignInAnonymously(observer: (AnonymousSignInEvent) -> Unit) {
+    signInViewModel.event.observe(this, observer)
 }
 
-fun <T> T.observeAnonymousSignIn(
-    observer: (AnonymousSignInEvent) -> Unit
-) where T : AnonymousSignInExtensions, T : FragmentActivity {
-    signInViewModel.event.observe(this, observer)
+fun AppCompatActivity.startFireSignInAnonymously(timeout: Long = Long.MAX_VALUE) {
+    signInViewModel.signInAnonymously(timeout, this)
 }
 
 //endregion
 //region Fragment
 
-fun <T> T.signInAnonymously(
-    timeout: Long = Long.MAX_VALUE
-) where T : AnonymousSignInExtensions, T : Fragment {
-    signInViewModel.signInAnonymously(timeout, requireContext())
-}
-
-fun <T> T.observeAnonymousSignIn(
-    observer: (AnonymousSignInEvent) -> Unit
-) where T : AnonymousSignInExtensions, T : Fragment {
+fun Fragment.observeFireSignInAnonymously(observer: (AnonymousSignInEvent) -> Unit) {
     signInViewModel.event.observe(viewLifecycleOwner, observer)
 }
 
-//endregion
+fun Fragment.startFireSignInAnonymously(timeout: Long = Long.MAX_VALUE) {
+    signInViewModel.signInAnonymously(timeout, requireContext())
+}
 
+//endregion
 //endregion
 //region Internal extensions functions
 
-private val FragmentActivity.signInViewModel
+private inline val AppCompatActivity.signInViewModel
     get() = getViewModel<AnonymousSignInViewModel>()
 
-private val Fragment.signInViewModel
+private inline val Fragment.signInViewModel
     get() = getViewModel<AnonymousSignInViewModel>()
 
 //endregion

@@ -6,17 +6,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.AuthResult
-import io.github.achmadhafid.firebase_auth_view_model.FirebaseAuthExtensions
+import io.github.achmadhafid.firebase_auth_view_model.isSigningIn
 import io.github.achmadhafid.zpack.ktx.isConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
-internal abstract class SignInViewModel<E : SignInException> : ViewModel(),
-    FirebaseAuthExtensions {
+internal abstract class SignInViewModel<E : SignInException> : ViewModel() {
 
-    private val _event = MutableLiveData<SignInEvent<E>>(SignInEvent(SignInState.Empty))
+    private val _event = MutableLiveData<SignInEvent<E>>()
     internal val event: LiveData<SignInEvent<E>> = _event
 
     protected fun executeSignInTask(
@@ -37,6 +36,7 @@ internal abstract class SignInViewModel<E : SignInException> : ViewModel(),
                     }
                 }
             }.onSuccess {
+                isSigningIn = false
                 _event.postValue(SignInEvent(SignInState.OnSuccess(it)))
             }.onFailure {
                 onFailed(parseException(it))
@@ -44,9 +44,11 @@ internal abstract class SignInViewModel<E : SignInException> : ViewModel(),
         }
 
         _event.value = SignInEvent(SignInState.OnProgress)
+        isSigningIn = true
     }
 
     protected fun onFailed(exception: E) {
+        isSigningIn = false
         _event.postValue(SignInEvent(SignInState.OnFailed(exception)))
     }
 
