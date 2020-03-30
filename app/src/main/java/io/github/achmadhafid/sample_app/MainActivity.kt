@@ -1,6 +1,7 @@
 package io.github.achmadhafid.sample_app
 
 import android.os.Bundle
+import androidx.lifecycle.observe
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.checkbox.MaterialCheckBox
 import io.github.achmadhafid.sample_app.auth.AnonymousSignInActivity
@@ -51,7 +52,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         //endregion
         //region setup preference observer
 
-        simplePrefLiveData(authCallbackMode, ::authCallbackMode) {
+        simplePrefLiveData(authCallbackMode, ::authCallbackMode).observe(this) {
             cbAuthCallbackMode.isChecked = it
         }
 
