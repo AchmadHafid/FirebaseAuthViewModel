@@ -14,11 +14,11 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
-import io.github.achmadhafid.firebase_auth_view_model.fireAuth
+import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
 import io.github.achmadhafid.firebase_auth_view_model.isSigningIn
 import io.github.achmadhafid.firebase_auth_view_model.signin.PhoneSignInException
-import io.github.achmadhafid.zpack.ktx.getViewModel
-import io.github.achmadhafid.zpack.ktx.isConnected
+import io.github.achmadhafid.zpack.extension.getViewModel
+import io.github.achmadhafid.zpack.extension.isConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
@@ -75,7 +75,7 @@ internal class PhoneSignInViewModel : ViewModel() {
             runCatching {
                 withContext(Dispatchers.IO) {
                     withTimeout(timeout) {
-                        fireAuth.signInWithCredential(credential).await()
+                        firebaseAuth.signInWithCredential(credential).await()
                     }
                 }
             }.onSuccess {
@@ -108,7 +108,7 @@ internal class PhoneSignInViewModel : ViewModel() {
 
     internal fun submitPhone(phone: String, context: Context) {
         if (true == context.isConnected) {
-            fireAuth.setLanguageCode(languageCode)
+            firebaseAuth.setLanguageCode(languageCode)
             phoneAuthProvider.verifyPhoneNumber(
                 phone,
                 timeout, TimeUnit.MILLISECONDS,

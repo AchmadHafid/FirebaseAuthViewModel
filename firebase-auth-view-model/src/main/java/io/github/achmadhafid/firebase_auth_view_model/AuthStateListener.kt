@@ -5,7 +5,7 @@ import com.google.firebase.auth.FirebaseUser
 data class AuthStateListener(
     internal var onSignInListener: (FirebaseUser) -> Unit = {},
     internal var onSignOutListener: () -> Unit = {},
-    internal var onAnyListener: () -> Unit = {}
+    internal var onAnyListener: (FirebaseUser?) -> Unit = {}
 )
 
 //region Kotlin DSL builder
@@ -13,7 +13,7 @@ data class AuthStateListener(
 fun AuthStateListener.onSignedIn(callback: (FirebaseUser) -> Unit) {
     onSignInListener = { user ->
         callback(user)
-        onAnyListener()
+        onAnyListener(user)
     }
 }
 
@@ -21,12 +21,12 @@ fun AuthStateListener.onSignedOut(callback: () -> Unit) {
     onSignOutListener = {
         if (!isSigningIn) {
             callback()
-            onAnyListener()
+            onAnyListener(null)
         }
     }
 }
 
-fun AuthStateListener.onAny(callback: () -> Unit) {
+fun AuthStateListener.onAny(callback: (FirebaseUser?) -> Unit) {
     onAnyListener = callback
 }
 

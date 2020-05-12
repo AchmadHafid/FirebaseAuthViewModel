@@ -45,14 +45,14 @@ private class AuthStateLiveData(
 
     private fun attachListener() {
         if (!isListenerAttached) {
-            fireAuth.addAuthStateListener(this)
+            firebaseAuth.addAuthStateListener(this)
             isListenerAttached = true
         }
     }
 
     private fun detachListener() {
         if (isListenerAttached) {
-            fireAuth.removeAuthStateListener(this)
+            firebaseAuth.removeAuthStateListener(this)
             isListenerAttached = false
         }
     }
@@ -63,7 +63,7 @@ private class AuthStateLiveData(
 
 //region Consumer API via extension functions
 
-fun LifecycleOwner.observeFireAuthState(
+fun LifecycleOwner.observeFirebaseAuthState(
     recyclerOnInactive: Boolean = true,
     builder: AuthStateListener.() -> Unit
 ) {
@@ -76,9 +76,9 @@ fun LifecycleOwner.observeFireAuthState(
     }
 }
 
-fun Fragment.observeFireAuthState(
+fun Fragment.observeFirebaseAuthState(
     recyclerOnInactive: Boolean = true,
     builder: AuthStateListener.() -> Unit
-) = viewLifecycleOwner.observeFireAuthState(recyclerOnInactive, builder)
+) = viewLifecycleOwner.observeFirebaseAuthState(recyclerOnInactive, builder)
 
 //endregion

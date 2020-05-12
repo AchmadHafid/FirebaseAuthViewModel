@@ -15,8 +15,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.GoogleAuthProvider
-import io.github.achmadhafid.firebase_auth_view_model.fireAuth
-import io.github.achmadhafid.zpack.ktx.getViewModel
+import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
+import io.github.achmadhafid.zpack.extension.getViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 
@@ -46,7 +46,7 @@ internal class GoogleSignInViewModel : SignInViewModel<GoogleSignInException>() 
                     .getResult(ApiException::class.java)
                 requireNotNull(account)
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-                fireAuth.signInWithCredential(credential).await()
+                firebaseAuth.signInWithCredential(credential).await()
             }
         }
     }
@@ -65,6 +65,7 @@ fun AppCompatActivity.startFireSignInByGoogle(
     requestCode: Int,
     forceAccountChooser: Boolean = false
 ) {
+    @Suppress("DEPRECATION")
     startActivityForResult(getGoogleSignInIntent(clientId, forceAccountChooser), requestCode)
 }
 
@@ -88,6 +89,7 @@ fun Fragment.startFireSignInByGoogle(
     requestCode: Int,
     forceAccountChooser: Boolean = false
 ) {
+    @Suppress("DEPRECATION")
     startActivityForResult(getGoogleSignInIntent(clientId, forceAccountChooser), requestCode)
 }
 

@@ -2,50 +2,46 @@ package io.github.achmadhafid.sample_app
 
 import android.os.Bundle
 import androidx.lifecycle.observe
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.checkbox.MaterialCheckBox
 import io.github.achmadhafid.sample_app.auth.AnonymousSignInActivity
 import io.github.achmadhafid.sample_app.auth.EmailSignInActivity
 import io.github.achmadhafid.sample_app.auth.GoogleSignInActivity
 import io.github.achmadhafid.sample_app.auth.PhoneSignInActivity
+import io.github.achmadhafid.sample_app.databinding.ActivityMainBinding
 import io.github.achmadhafid.simplepref.livedata.simplePrefLiveData
-import io.github.achmadhafid.zpack.ktx.bindView
-import io.github.achmadhafid.zpack.ktx.onSingleClick
-import io.github.achmadhafid.zpack.ktx.setMaterialToolbar
-import io.github.achmadhafid.zpack.ktx.startActivity
+import io.github.achmadhafid.zpack.extension.intent
+import io.github.achmadhafid.zpack.extension.view.onSingleClick
 
-class MainActivity : BaseActivity(R.layout.activity_main) {
+class MainActivity : BaseActivity() {
 
     //region View Binding
 
-    private val btnDemoAnonymous: MaterialButton by bindView(R.id.btn_anonymous_sign_in_demo)
-    private val btnDemoGoogle: MaterialButton by bindView(R.id.btn_google_sign_in_demo)
-    private val btnDemoEmail: MaterialButton by bindView(R.id.btn_email_sign_in_demo)
-    private val btnDemoPhone: MaterialButton by bindView(R.id.btn_phone_sign_in_demo)
-    private val cbAuthCallbackMode: MaterialCheckBox by bindView(R.id.cb_auth_callback_mode)
+    private val binding by lazy {
+        ActivityMainBinding.inflate(layoutInflater)
+    }
 
     //endregion
     //region Lifecycle Callback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setMaterialToolbar(R.id.toolbar)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         //region setup view
 
-        btnDemoAnonymous.onSingleClick {
-            startActivity<AnonymousSignInActivity>()
+        binding.btnAnonymousSignInDemo.onSingleClick {
+            startActivity(intent<AnonymousSignInActivity>())
         }
-        btnDemoGoogle.onSingleClick {
-            startActivity<GoogleSignInActivity>()
+        binding.btnGoogleSignInDemo.onSingleClick {
+            startActivity(intent<GoogleSignInActivity>())
         }
-        btnDemoEmail.onSingleClick {
-            startActivity<EmailSignInActivity>()
+        binding.btnEmailSignInDemo.onSingleClick {
+            startActivity(intent<EmailSignInActivity>())
         }
-        btnDemoPhone.onSingleClick {
-            startActivity<PhoneSignInActivity>()
+        binding.btnPhoneSignInDemo.onSingleClick {
+            startActivity(intent<PhoneSignInActivity>())
         }
 
-        cbAuthCallbackMode.setOnCheckedChangeListener { _, isChecked ->
+        binding.cbAuthCallbackMode.setOnCheckedChangeListener { _, isChecked ->
             authCallbackMode = isChecked
         }
 
@@ -53,7 +49,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         //region setup preference observer
 
         simplePrefLiveData(authCallbackMode, ::authCallbackMode).observe(this) {
-            cbAuthCallbackMode.isChecked = it
+            binding.cbAuthCallbackMode.isChecked = it
         }
 
         //endregion

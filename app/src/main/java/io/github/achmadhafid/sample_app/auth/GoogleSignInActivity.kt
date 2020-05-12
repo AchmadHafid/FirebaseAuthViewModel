@@ -2,12 +2,9 @@ package io.github.achmadhafid.sample_app.auth
 
 import android.content.Intent
 import android.os.Bundle
-import com.google.android.gms.common.SignInButton
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.checkbox.MaterialCheckBox
 import com.orhanobut.logger.Logger
-import io.github.achmadhafid.firebase_auth_view_model.fireAuth
-import io.github.achmadhafid.firebase_auth_view_model.observeFireAuthState
+import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
+import io.github.achmadhafid.firebase_auth_view_model.observeFirebaseAuthState
 import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
 import io.github.achmadhafid.firebase_auth_view_model.signin.GoogleSignInException
@@ -17,23 +14,22 @@ import io.github.achmadhafid.firebase_auth_view_model.signin.onFireSignInByGoogl
 import io.github.achmadhafid.firebase_auth_view_model.signin.startFireSignInByGoogle
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
-import io.github.achmadhafid.zpack.ktx.bindView
-import io.github.achmadhafid.zpack.ktx.gone
-import io.github.achmadhafid.zpack.ktx.onSingleClick
-import io.github.achmadhafid.zpack.ktx.setMaterialToolbar
-import io.github.achmadhafid.zpack.ktx.show
-import io.github.achmadhafid.zpack.ktx.stringRes
-import io.github.achmadhafid.zpack.ktx.toastShort
+import io.github.achmadhafid.sample_app.databinding.ActivityGoogleSignInBinding
+import io.github.achmadhafid.zpack.extension.stringRes
+import io.github.achmadhafid.zpack.extension.toastShort
+import io.github.achmadhafid.zpack.extension.view.gone
+import io.github.achmadhafid.zpack.extension.view.onSingleClick
+import io.github.achmadhafid.zpack.extension.view.show
 
 private const val REQUEST_CODE = 1234
 
-class GoogleSignInActivity : BaseActivity(R.layout.activity_google_sign_in) {
+class GoogleSignInActivity : BaseActivity() {
 
     //region View Binding
 
-    private val btnLogin: SignInButton by bindView(R.id.btn_login)
-    private val btnLogout: MaterialButton by bindView(R.id.btn_logout)
-    private val cbForceAccountChooser: MaterialCheckBox by bindView(R.id.cb_force_account_chooser)
+    private val binding by lazy {
+        ActivityGoogleSignInBinding.inflate(layoutInflater)
+    }
 
     //endregion
     //region Resource Binding
@@ -46,36 +42,41 @@ class GoogleSignInActivity : BaseActivity(R.layout.activity_google_sign_in) {
     @Suppress("ComplexMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(binding.root)
         //region setup toolbar
 
-        setMaterialToolbar(R.id.toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         //endregion
         //region setup action widget
 
-        btnLogin.onSingleClick {
-            startFireSignInByGoogle(webClientId, REQUEST_CODE, cbForceAccountChooser.isChecked)
+        binding.btnLogin.onSingleClick {
+            startFireSignInByGoogle(webClientId.toString(), REQUEST_CODE, binding.cbForceAccountChooser.isChecked)
         }
-        btnLogout.onSingleClick {
-            fireAuth.signOut()
+        binding.btnLogout.onSingleClick {
+            firebaseAuth.signOut()
         }
 
         //endregion
         //region observe auth state
 
-        observeFireAuthState(authCallbackMode) {
+        observeFirebaseAuthState(authCallbackMode) {
             onSignedIn {
                 Logger.d("User signed in")
-                btnLogin.gone()
-                cbForceAccountChooser.gone()
-                btnLogout.show()
+                with(binding) {
+                    btnLogin.gone()
+                    cbForceAccountChooser.gone()
+                    btnLogout.show()
+                }
             }
             onSignedOut {
                 Logger.d("User signed out")
-                btnLogout.gone()
-                btnLogin.show()
-                cbForceAccountChooser.show()
+                with(binding) {
+                    btnLogout.gone()
+                    btnLogin.show()
+                    cbForceAccountChooser.show()
+                }
             }
         }
 
@@ -114,6 +115,7 @@ class GoogleSignInActivity : BaseActivity(R.layout.activity_google_sign_in) {
         //endregion
     }
 
+    @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (REQUEST_CODE == requestCode) {

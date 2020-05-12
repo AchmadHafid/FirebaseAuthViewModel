@@ -1,11 +1,10 @@
 package io.github.achmadhafid.sample_app.auth
 
 import android.os.Bundle
-import com.google.android.material.button.MaterialButton
 import com.orhanobut.logger.Logger
-import io.github.achmadhafid.firebase_auth_view_model.fireAuth
-import io.github.achmadhafid.firebase_auth_view_model.fireUser
-import io.github.achmadhafid.firebase_auth_view_model.observeFireAuthState
+import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
+import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
+import io.github.achmadhafid.firebase_auth_view_model.observeFirebaseAuthState
 import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
 import io.github.achmadhafid.firebase_auth_view_model.signin.AnonymousSignInException
@@ -14,17 +13,18 @@ import io.github.achmadhafid.firebase_auth_view_model.signin.observeFireSignInAn
 import io.github.achmadhafid.firebase_auth_view_model.signin.startFireSignInAnonymously
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
-import io.github.achmadhafid.zpack.ktx.bindView
-import io.github.achmadhafid.zpack.ktx.onSingleClick
-import io.github.achmadhafid.zpack.ktx.setMaterialToolbar
-import io.github.achmadhafid.zpack.ktx.setTextRes
-import io.github.achmadhafid.zpack.ktx.toastShort
+import io.github.achmadhafid.sample_app.databinding.ActivityAnonymousSignInBinding
+import io.github.achmadhafid.zpack.extension.toastShort
+import io.github.achmadhafid.zpack.extension.view.onSingleClick
+import io.github.achmadhafid.zpack.extension.view.setTextRes
 
-class AnonymousSignInActivity : BaseActivity(R.layout.activity_anonymous_sign_in) {
+class AnonymousSignInActivity : BaseActivity() {
 
     //region View Binding
 
-    private val btnAuth: MaterialButton by bindView(R.id.btn_auth)
+    private val binding by lazy {
+        ActivityAnonymousSignInBinding.inflate(layoutInflater)
+    }
 
     //endregion
     //region Lifecycle Callback
@@ -32,31 +32,32 @@ class AnonymousSignInActivity : BaseActivity(R.layout.activity_anonymous_sign_in
     @Suppress("ComplexMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(binding.root)
         //region setup toolbar
 
-        setMaterialToolbar(R.id.toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         //endregion
         //region setup action widget
 
-        btnAuth.onSingleClick {
-            fireUser?.let {
-                fireAuth.signOut()
+        binding.btnAuth.onSingleClick {
+            firebaseUser?.let {
+                firebaseAuth.signOut()
             } ?: startFireSignInAnonymously()
         }
 
         //endregion
         //region observe auth state
 
-        observeFireAuthState(authCallbackMode) {
+        observeFirebaseAuthState(authCallbackMode) {
             onSignedIn {
                 Logger.d("User signed in")
-                btnAuth.setTextRes(R.string.logout)
+                binding.btnAuth.setTextRes(R.string.logout)
             }
             onSignedOut {
                 Logger.d("User signed out")
-                btnAuth.setTextRes(R.string.login)
+                binding.btnAuth.setTextRes(R.string.login)
             }
         }
 

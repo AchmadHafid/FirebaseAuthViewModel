@@ -5,8 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.observe
 import com.google.firebase.auth.FirebaseAuthException
-import io.github.achmadhafid.firebase_auth_view_model.fireAuth
-import io.github.achmadhafid.zpack.ktx.getViewModel
+import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
+import io.github.achmadhafid.zpack.extension.getViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 
@@ -24,7 +24,7 @@ internal class AnonymousSignInViewModel : SignInViewModel<AnonymousSignInExcepti
 
     internal fun signInAnonymously(timeout: Long = Long.MAX_VALUE, context: Context? = null) {
         executeSignInTask(timeout, context) {
-            fireAuth.signInAnonymously().await()
+            firebaseAuth.signInAnonymously().await()
         }
     }
 }

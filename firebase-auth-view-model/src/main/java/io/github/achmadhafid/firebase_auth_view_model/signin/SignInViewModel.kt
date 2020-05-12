@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.AuthResult
 import io.github.achmadhafid.firebase_auth_view_model.isSigningIn
-import io.github.achmadhafid.zpack.ktx.isConnected
+import io.github.achmadhafid.zpack.extension.isConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
