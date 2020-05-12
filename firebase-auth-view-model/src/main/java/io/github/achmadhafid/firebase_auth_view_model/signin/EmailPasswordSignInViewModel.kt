@@ -10,18 +10,18 @@ import io.github.achmadhafid.zpack.extension.getViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 
-internal class EmailSignInViewModel : SignInViewModel<EmailSignInException>() {
+internal class EmailPasswordSignInViewModel : SignInViewModel<EmailPasswordSignInException>() {
 
-    override val offlineException: EmailSignInException
-        get() = EmailSignInException.Offline
+    override val offlineException: EmailPasswordSignInException
+        get() = EmailPasswordSignInException.Offline
 
-    override fun parseException(throwable: Throwable): EmailSignInException = when (throwable) {
-        is TimeoutCancellationException -> EmailSignInException.Timeout
-        is FirebaseAuthException -> EmailSignInException.FireAuthException(throwable)
-        else -> EmailSignInException.Unknown
+    override fun parseException(throwable: Throwable): EmailPasswordSignInException = when (throwable) {
+        is TimeoutCancellationException -> EmailPasswordSignInException.Timeout
+        is FirebaseAuthException -> EmailPasswordSignInException.AuthException(throwable)
+        else -> EmailPasswordSignInException.Unknown
     }
 
-    internal fun signInByEmail(
+    internal fun signInByEmailPassword(
         email: String,
         password: String,
         timeout: Long = Long.MAX_VALUE,
@@ -33,7 +33,7 @@ internal class EmailSignInViewModel : SignInViewModel<EmailSignInException>() {
         }
     }
 
-    internal fun createUserByEmail(
+    internal fun createUserByEmailPassword(
         email: String,
         password: String,
         timeout: Long = Long.MAX_VALUE,
@@ -50,40 +50,40 @@ internal class EmailSignInViewModel : SignInViewModel<EmailSignInException>() {
 //region Consumer API via extension functions
 //region Activity
 
-fun AppCompatActivity.observeFireSignInByEmail(observer: (EmailSignInEvent) -> Unit) {
+fun AppCompatActivity.observeSignInByEmailPassword(observer: (EmailPasswordSignInEvent) -> Unit) {
     signInViewModel.event.observe(this, observer)
 }
 
-fun AppCompatActivity.startFireSignInByEmail(
+fun AppCompatActivity.startSignInByEmailPassword(
     email: String,
     password: String,
     createNew: Boolean = false,
     timeout: Long = Long.MAX_VALUE
 ) {
     if (createNew) {
-        signInViewModel.createUserByEmail(email, password, timeout, this)
+        signInViewModel.createUserByEmailPassword(email, password, timeout, this)
     } else {
-        signInViewModel.signInByEmail(email, password, timeout, this)
+        signInViewModel.signInByEmailPassword(email, password, timeout, this)
     }
 }
 
 //endregion
 //region Fragment
 
-fun Fragment.observeFireSignInByEmail(observer: (EmailSignInEvent) -> Unit) {
+fun Fragment.observeSignInByEmailPassword(observer: (EmailPasswordSignInEvent) -> Unit) {
     signInViewModel.event.observe(viewLifecycleOwner, observer)
 }
 
-fun Fragment.startFireSignInByEmail(
+fun Fragment.startSignInByEmailPassword(
     email: String,
     password: String,
     createNew: Boolean = false,
     timeout: Long = Long.MAX_VALUE
 ) {
     if (createNew) {
-        signInViewModel.createUserByEmail(email, password, timeout, requireContext())
+        signInViewModel.createUserByEmailPassword(email, password, timeout, requireContext())
     } else {
-        signInViewModel.signInByEmail(email, password, timeout, requireContext())
+        signInViewModel.signInByEmailPassword(email, password, timeout, requireContext())
     }
 }
 
@@ -92,9 +92,9 @@ fun Fragment.startFireSignInByEmail(
 //region Internal extension functions
 
 private inline val AppCompatActivity.signInViewModel
-    get() = getViewModel<EmailSignInViewModel>()
+    get() = getViewModel<EmailPasswordSignInViewModel>()
 
 private inline val Fragment.signInViewModel
-    get() = getViewModel<EmailSignInViewModel>()
+    get() = getViewModel<EmailPasswordSignInViewModel>()
 
 //endregion

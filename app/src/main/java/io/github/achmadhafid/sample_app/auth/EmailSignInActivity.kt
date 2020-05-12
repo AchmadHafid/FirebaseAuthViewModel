@@ -7,10 +7,10 @@ import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
 import io.github.achmadhafid.firebase_auth_view_model.observeFirebaseAuthState
 import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
-import io.github.achmadhafid.firebase_auth_view_model.signin.EmailSignInException
+import io.github.achmadhafid.firebase_auth_view_model.signin.EmailPasswordSignInException
 import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.observeFireSignInByEmail
-import io.github.achmadhafid.firebase_auth_view_model.signin.startFireSignInByEmail
+import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInByEmailPassword
+import io.github.achmadhafid.firebase_auth_view_model.signin.startSignInByEmailPassword
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
 import io.github.achmadhafid.sample_app.databinding.ActivityEmailSignInBinding
@@ -46,7 +46,7 @@ class EmailSignInActivity : BaseActivity() {
         binding.btnCreateUser.onSingleClick {
             with(binding.edtEmail.value to binding.edtPassword.value) {
                 if (first.isNotEmpty() && second.isNotEmpty()) {
-                    startFireSignInByEmail(first, second, true)
+                    startSignInByEmailPassword(first, second, true)
                 }
             }
         }
@@ -55,7 +55,7 @@ class EmailSignInActivity : BaseActivity() {
                 firebaseAuth.signOut()
             } ?: with(binding.edtEmail.value to binding.edtPassword.value) {
                 if (first.isNotEmpty() && second.isNotEmpty()) {
-                    startFireSignInByEmail(first, second)
+                    startSignInByEmailPassword(first, second)
                 }
             }
         }
@@ -85,7 +85,7 @@ class EmailSignInActivity : BaseActivity() {
         //endregion
         //region observe sign in progress
 
-        observeFireSignInByEmail {
+        observeSignInByEmailPassword {
             val (state, hasBeenConsumed) = it.state
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
@@ -96,11 +96,11 @@ class EmailSignInActivity : BaseActivity() {
                 is SignInState.OnFailed -> if (!hasBeenConsumed) {
                     dismissDialog()
                     val message = when (val signInException = state.exception) {
-                        EmailSignInException.Unknown -> "Unknown"
-                        EmailSignInException.Offline -> "Internet connection unavailable"
-                        EmailSignInException.Timeout -> "Connection time out"
-                        is EmailSignInException.FireAuthException -> {
-                            signInException.fireException.message!!
+                        EmailPasswordSignInException.Unknown -> "Unknown"
+                        EmailPasswordSignInException.Offline -> "Internet connection unavailable"
+                        EmailPasswordSignInException.Timeout -> "Connection time out"
+                        is EmailPasswordSignInException.AuthException -> {
+                            signInException.exception.message!!
                         }
                     }
                     toastShort(message)

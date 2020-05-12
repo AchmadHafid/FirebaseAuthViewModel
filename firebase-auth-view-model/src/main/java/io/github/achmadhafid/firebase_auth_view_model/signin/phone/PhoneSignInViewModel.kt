@@ -15,7 +15,6 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
-import io.github.achmadhafid.firebase_auth_view_model.isSigningIn
 import io.github.achmadhafid.firebase_auth_view_model.signin.PhoneSignInException
 import io.github.achmadhafid.zpack.extension.getViewModel
 import io.github.achmadhafid.zpack.extension.isConnected
@@ -49,7 +48,7 @@ internal class PhoneSignInViewModel : ViewModel() {
                 val exception = when (e) {
                     is FirebaseAuthInvalidCredentialsException -> PhoneSignInException.InvalidRequest
                     is FirebaseTooManyRequestsException -> PhoneSignInException.QuotaExceeded
-                    else -> PhoneSignInException.FireException(e)
+                    else -> PhoneSignInException.AuthException(e)
                 }
                 onFailed(exception)
             }
@@ -79,20 +78,17 @@ internal class PhoneSignInViewModel : ViewModel() {
                     }
                 }
             }.onSuccess {
-                isSigningIn = false
                 setState(PhoneSignInState.OnSuccess)
             }.onFailure {
-                isSigningIn = false
                 val exception = when (it) {
                     is TimeoutCancellationException -> PhoneSignInException.SignInTimeout
-                    is FirebaseAuthException -> PhoneSignInException.FireException(it)
+                    is FirebaseAuthException -> PhoneSignInException.AuthException(it)
                     else -> PhoneSignInException.Unknown
                 }
                 onFailed(exception)
             }
         }
         setState(PhoneSignInState.SigningIn)
-        isSigningIn = true
     }
 
     internal fun start(
@@ -142,11 +138,11 @@ internal class PhoneSignInViewModel : ViewModel() {
 //region Extensions
 //region Activity
 
-fun AppCompatActivity.observeFireSignInByPhone(observer: (PhoneSignInEvent) -> Unit) {
+fun AppCompatActivity.observeSignInByPhone(observer: (PhoneSignInEvent) -> Unit) {
     signInViewModel.event.observe(this, observer)
 }
 
-fun AppCompatActivity.startFireSignInByPhone(
+fun AppCompatActivity.startSignInByPhone(
     initialPhone: String? = null,
     languageCode: String = "en",
     timeout: Long = Long.MAX_VALUE
@@ -154,26 +150,26 @@ fun AppCompatActivity.startFireSignInByPhone(
     signInViewModel.start(initialPhone, languageCode, timeout)
 }
 
-fun AppCompatActivity.onFireSignInByPhoneSubmitPhone(phone: String) {
+fun AppCompatActivity.onSignInByPhoneSubmitPhone(phone: String) {
     signInViewModel.submitPhone(phone, this)
 }
 
-fun AppCompatActivity.onFireSignInByPhoneSubmitOtp(otp: String) {
+fun AppCompatActivity.onSignInByPhoneSubmitOtp(otp: String) {
     signInViewModel.submitOtp(otp, this)
 }
 
-fun AppCompatActivity.cancelFireSignInByPhone() {
+fun AppCompatActivity.cancelSignInByPhone() {
     signInViewModel.cancel()
 }
 
 //endregion
 //region Fragment
 
-fun Fragment.observeFireSignInByPhone(observer: (PhoneSignInEvent) -> Unit) {
+fun Fragment.observeSignInByPhone(observer: (PhoneSignInEvent) -> Unit) {
     signInViewModel.event.observe(viewLifecycleOwner, observer)
 }
 
-fun Fragment.startFireSignInByPhone(
+fun Fragment.startSignInByPhone(
     initialPhone: String? = null,
     languageCode: String = "en",
     timeout: Long = Long.MAX_VALUE
@@ -181,15 +177,15 @@ fun Fragment.startFireSignInByPhone(
     signInViewModel.start(initialPhone, languageCode, timeout)
 }
 
-fun Fragment.onFireSignInByPhoneSubmitPhone(phone: String) {
+fun Fragment.onSignInByPhoneSubmitPhone(phone: String) {
     signInViewModel.submitPhone(phone, requireContext())
 }
 
-fun Fragment.onFireSignInByPhoneSubmitOtp(otp: String) {
+fun Fragment.onSignInByPhoneSubmitOtp(otp: String) {
     signInViewModel.submitOtp(otp, requireContext())
 }
 
-fun Fragment.cancelFireSignInByPhone() {
+fun Fragment.cancelSignInByPhone() {
     signInViewModel.cancel()
 }
 

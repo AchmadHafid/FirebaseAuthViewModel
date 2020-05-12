@@ -4,6 +4,6 @@ import com.google.firebase.auth.AuthResult
 
 sealed class SignInState<out E : SignInException> {
     object OnProgress : SignInState<Nothing>()
-    data class OnSuccess(val authResult: AuthResult) : SignInState<Nothing>()
+    data class OnSuccess(val result: AuthResult) : SignInState<Nothing>()
     data class OnFailed<E : SignInException>(val exception: E) : SignInState<E>()
 }

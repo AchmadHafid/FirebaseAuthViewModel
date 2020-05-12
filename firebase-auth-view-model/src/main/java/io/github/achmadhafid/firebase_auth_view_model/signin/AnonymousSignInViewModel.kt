@@ -18,7 +18,7 @@ internal class AnonymousSignInViewModel : SignInViewModel<AnonymousSignInExcepti
     override fun parseException(throwable: Throwable): AnonymousSignInException = when (throwable) {
         is AnonymousSignInException -> throwable
         is TimeoutCancellationException -> AnonymousSignInException.Timeout
-        is FirebaseAuthException -> AnonymousSignInException.FireAuthException(throwable)
+        is FirebaseAuthException -> AnonymousSignInException.AuthException(throwable)
         else -> AnonymousSignInException.Unknown
     }
 
@@ -32,22 +32,22 @@ internal class AnonymousSignInViewModel : SignInViewModel<AnonymousSignInExcepti
 //region Consumer API via extension functions
 //region Activity
 
-fun AppCompatActivity.observeFireSignInAnonymously(observer: (AnonymousSignInEvent) -> Unit) {
+fun AppCompatActivity.observeSignInAnonymously(observer: (AnonymousSignInEvent) -> Unit) {
     signInViewModel.event.observe(this, observer)
 }
 
-fun AppCompatActivity.startFireSignInAnonymously(timeout: Long = Long.MAX_VALUE) {
+fun AppCompatActivity.startSignInAnonymously(timeout: Long = Long.MAX_VALUE) {
     signInViewModel.signInAnonymously(timeout, this)
 }
 
 //endregion
 //region Fragment
 
-fun Fragment.observeFireSignInAnonymously(observer: (AnonymousSignInEvent) -> Unit) {
+fun Fragment.observeSignInAnonymously(observer: (AnonymousSignInEvent) -> Unit) {
     signInViewModel.event.observe(viewLifecycleOwner, observer)
 }
 
-fun Fragment.startFireSignInAnonymously(timeout: Long = Long.MAX_VALUE) {
+fun Fragment.startSignInAnonymously(timeout: Long = Long.MAX_VALUE) {
     signInViewModel.signInAnonymously(timeout, requireContext())
 }
 

@@ -27,7 +27,7 @@ internal class GoogleSignInViewModel : SignInViewModel<GoogleSignInException>() 
 
     override fun parseException(throwable: Throwable): GoogleSignInException = when (throwable) {
         is TimeoutCancellationException -> GoogleSignInException.Timeout
-        is FirebaseAuthException -> GoogleSignInException.FireAuthException(throwable)
+        is FirebaseAuthException -> GoogleSignInException.AuthException(throwable)
         is ApiException -> GoogleSignInException.WrappedApiException(throwable)
         else -> GoogleSignInException.Unknown
     }
@@ -56,11 +56,11 @@ internal class GoogleSignInViewModel : SignInViewModel<GoogleSignInException>() 
 //region Consumer API via extension functions
 //region Activity
 
-fun AppCompatActivity.observeFireSignInByGoogle(observer: (GoogleSignInEvent) -> Unit) {
+fun AppCompatActivity.observeSignInByGoogle(observer: (GoogleSignInEvent) -> Unit) {
     signInViewModel.event.observe(this, observer)
 }
 
-fun AppCompatActivity.startFireSignInByGoogle(
+fun AppCompatActivity.startSignInByGoogle(
     clientId: String,
     requestCode: Int,
     forceAccountChooser: Boolean = false
@@ -69,7 +69,7 @@ fun AppCompatActivity.startFireSignInByGoogle(
     startActivityForResult(getGoogleSignInIntent(clientId, forceAccountChooser), requestCode)
 }
 
-fun AppCompatActivity.onFireSignInByGoogleActivityResult(
+fun AppCompatActivity.onSignInByGoogleResult(
     resultCode: Int,
     data: Intent?,
     timeout: Long = Long.MAX_VALUE
@@ -80,11 +80,11 @@ fun AppCompatActivity.onFireSignInByGoogleActivityResult(
 //endregion
 //region Fragment
 
-fun Fragment.observeFireSignInByGoogle(observer: (GoogleSignInEvent) -> Unit) {
+fun Fragment.observeSignInByGoogle(observer: (GoogleSignInEvent) -> Unit) {
     signInViewModel.event.observe(viewLifecycleOwner, observer)
 }
 
-fun Fragment.startFireSignInByGoogle(
+fun Fragment.startSignInByGoogle(
     clientId: String,
     requestCode: Int,
     forceAccountChooser: Boolean = false
@@ -93,7 +93,7 @@ fun Fragment.startFireSignInByGoogle(
     startActivityForResult(getGoogleSignInIntent(clientId, forceAccountChooser), requestCode)
 }
 
-fun Fragment.onFireSignInByGoogleActivityResult(
+fun Fragment.onSignInByGoogleResult(
     resultCode: Int,
     data: Intent?,
     timeout: Long = Long.MAX_VALUE

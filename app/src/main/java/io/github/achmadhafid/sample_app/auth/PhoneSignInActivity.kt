@@ -9,11 +9,11 @@ import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
 import io.github.achmadhafid.firebase_auth_view_model.signin.PhoneSignInException
 import io.github.achmadhafid.firebase_auth_view_model.signin.phone.PhoneSignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.cancelFireSignInByPhone
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.observeFireSignInByPhone
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.onFireSignInByPhoneSubmitOtp
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.onFireSignInByPhoneSubmitPhone
-import io.github.achmadhafid.firebase_auth_view_model.signin.phone.startFireSignInByPhone
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.cancelSignInByPhone
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.observeSignInByPhone
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.onSignInByPhoneSubmitOtp
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.onSignInByPhoneSubmitPhone
+import io.github.achmadhafid.firebase_auth_view_model.signin.phone.startSignInByPhone
 import io.github.achmadhafid.lottie_dialog.core.lottieInputDialog
 import io.github.achmadhafid.lottie_dialog.core.lottieLoadingDialog
 import io.github.achmadhafid.lottie_dialog.core.onCancel
@@ -66,7 +66,7 @@ class PhoneSignInActivity : BaseActivity() {
             } ?: run {
                 val initialPhone = getString(R.string.dialog_phone_sign_in_input_phone_pre_fill)
                 val languageCode = "en"
-                startFireSignInByPhone(initialPhone, languageCode, timeout.toLong())
+                startSignInByPhone(initialPhone, languageCode, timeout.toLong())
             }
         }
 
@@ -87,7 +87,7 @@ class PhoneSignInActivity : BaseActivity() {
         //endregion
         //region observe phone sign in state in view model
 
-        observeFireSignInByPhone {
+        observeSignInByPhone {
             val (state, hasBeenConsumed) = it.state
             when (state) {
                 is PhoneSignInState.GetPhoneInput -> showInputPhoneDialog(state.phone)
@@ -109,7 +109,7 @@ class PhoneSignInActivity : BaseActivity() {
                         PhoneSignInException.InvalidRequest    -> "Invalid (phone number) request"
                         PhoneSignInException.QuotaExceeded     -> "Quota exceeded"
                         is PhoneSignInException.InvalidOtp     -> "Invalid OTP"
-                        is PhoneSignInException.FireException  -> signInException.fireException.message
+                        is PhoneSignInException.AuthException  -> signInException.exception.message
                     }
                     toastShort("Phone sign in error: $message")
                 }
@@ -135,10 +135,10 @@ class PhoneSignInActivity : BaseActivity() {
             onTouchOutside = false
         }
         onValidInput {
-            onFireSignInByPhoneSubmitPhone(it)
+            onSignInByPhoneSubmitPhone(it)
         }
         onCancel {
-            cancelFireSignInByPhone()
+            cancelSignInByPhone()
         }
     }
 
@@ -154,10 +154,10 @@ class PhoneSignInActivity : BaseActivity() {
             onTouchOutside = false
         }
         onValidInput {
-            onFireSignInByPhoneSubmitOtp(it)
+            onSignInByPhoneSubmitOtp(it)
         }
         onCancel {
-            cancelFireSignInByPhone()
+            cancelSignInByPhone()
         }
     }
 

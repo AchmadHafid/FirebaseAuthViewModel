@@ -9,9 +9,9 @@ import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
 import io.github.achmadhafid.firebase_auth_view_model.signin.GoogleSignInException
 import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.observeFireSignInByGoogle
-import io.github.achmadhafid.firebase_auth_view_model.signin.onFireSignInByGoogleActivityResult
-import io.github.achmadhafid.firebase_auth_view_model.signin.startFireSignInByGoogle
+import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInByGoogle
+import io.github.achmadhafid.firebase_auth_view_model.signin.onSignInByGoogleResult
+import io.github.achmadhafid.firebase_auth_view_model.signin.startSignInByGoogle
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
 import io.github.achmadhafid.sample_app.databinding.ActivityGoogleSignInBinding
@@ -19,7 +19,7 @@ import io.github.achmadhafid.zpack.extension.stringRes
 import io.github.achmadhafid.zpack.extension.toastShort
 import io.github.achmadhafid.zpack.extension.view.gone
 import io.github.achmadhafid.zpack.extension.view.onSingleClick
-import io.github.achmadhafid.zpack.extension.view.show
+import io.github.achmadhafid.zpack.extension.view.visible
 
 private const val REQUEST_CODE = 1234
 
@@ -52,7 +52,7 @@ class GoogleSignInActivity : BaseActivity() {
         //region setup action widget
 
         binding.btnLogin.onSingleClick {
-            startFireSignInByGoogle(webClientId.toString(), REQUEST_CODE, binding.cbForceAccountChooser.isChecked)
+            startSignInByGoogle(webClientId.toString(), REQUEST_CODE, binding.cbForceAccountChooser.isChecked)
         }
         binding.btnLogout.onSingleClick {
             firebaseAuth.signOut()
@@ -67,15 +67,15 @@ class GoogleSignInActivity : BaseActivity() {
                 with(binding) {
                     btnLogin.gone()
                     cbForceAccountChooser.gone()
-                    btnLogout.show()
+                    btnLogout.visible()
                 }
             }
             onSignedOut {
                 Logger.d("User signed out")
                 with(binding) {
                     btnLogout.gone()
-                    btnLogin.show()
-                    cbForceAccountChooser.show()
+                    btnLogin.visible()
+                    cbForceAccountChooser.visible()
                 }
             }
         }
@@ -83,7 +83,7 @@ class GoogleSignInActivity : BaseActivity() {
         //endregion
         //region observe sign in progress
 
-        observeFireSignInByGoogle {
+        observeSignInByGoogle {
             val (state, hasBeenConsumed) = it.state
             when (state) {
                 SignInState.OnProgress -> {
@@ -100,11 +100,11 @@ class GoogleSignInActivity : BaseActivity() {
                         GoogleSignInException.Unknown -> "Unknown"
                         GoogleSignInException.Offline -> "Internet connection unavailable"
                         GoogleSignInException.Timeout -> "Connection time out"
-                        is GoogleSignInException.FireAuthException -> {
-                            signInException.fireException.message!!
+                        is GoogleSignInException.AuthException -> {
+                            signInException.exception.message!!
                         }
                         is GoogleSignInException.WrappedApiException -> {
-                            signInException.apiException.message!!
+                            signInException.exception.message!!
                         }
                     }
                     toastShort(message)
@@ -119,7 +119,7 @@ class GoogleSignInActivity : BaseActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (REQUEST_CODE == requestCode) {
-            onFireSignInByGoogleActivityResult(resultCode, data)
+            onSignInByGoogleResult(resultCode, data)
         }
     }
 

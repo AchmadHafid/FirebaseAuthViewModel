@@ -19,10 +19,10 @@ fun AuthStateListener.onSignedIn(callback: (FirebaseUser) -> Unit) {
 
 fun AuthStateListener.onSignedOut(callback: () -> Unit) {
     onSignOutListener = {
-        if (!isSigningIn) {
+//        if (!isSigningIn) {
             callback()
             onAnyListener(null)
-        }
+//        }
     }
 }
 

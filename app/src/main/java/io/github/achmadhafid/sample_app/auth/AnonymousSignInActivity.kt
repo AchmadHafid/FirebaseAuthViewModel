@@ -9,8 +9,8 @@ import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
 import io.github.achmadhafid.firebase_auth_view_model.signin.AnonymousSignInException
 import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.observeFireSignInAnonymously
-import io.github.achmadhafid.firebase_auth_view_model.signin.startFireSignInAnonymously
+import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInAnonymously
+import io.github.achmadhafid.firebase_auth_view_model.signin.startSignInAnonymously
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
 import io.github.achmadhafid.sample_app.databinding.ActivityAnonymousSignInBinding
@@ -44,7 +44,7 @@ class AnonymousSignInActivity : BaseActivity() {
         binding.btnAuth.onSingleClick {
             firebaseUser?.let {
                 firebaseAuth.signOut()
-            } ?: startFireSignInAnonymously()
+            } ?: startSignInAnonymously()
         }
 
         //endregion
@@ -64,7 +64,7 @@ class AnonymousSignInActivity : BaseActivity() {
         //endregion
         //region observe sign in progress
 
-        observeFireSignInAnonymously {
+        observeSignInAnonymously {
             val (state, hasBeenConsumed) = it.state
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
@@ -78,8 +78,8 @@ class AnonymousSignInActivity : BaseActivity() {
                         AnonymousSignInException.Unknown -> "Unknown"
                         AnonymousSignInException.Offline -> "Internet connection unavailable"
                         AnonymousSignInException.Timeout -> "Connection time out"
-                        is AnonymousSignInException.FireAuthException -> {
-                            signInException.fireException.message!!
+                        is AnonymousSignInException.AuthException -> {
+                            signInException.exception.message!!
                         }
                     }
                     toastShort(message)

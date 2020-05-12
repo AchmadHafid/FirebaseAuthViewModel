@@ -10,14 +10,21 @@ sealed class AnonymousSignInException : SignInException() {
     object Unknown : AnonymousSignInException()
     object Offline : AnonymousSignInException()
     object Timeout : AnonymousSignInException()
-    data class FireAuthException(val fireException: FirebaseAuthException) : AnonymousSignInException()
+    data class AuthException(val exception: FirebaseAuthException) : AnonymousSignInException()
 }
 
-sealed class EmailSignInException : SignInException() {
-    object Unknown : EmailSignInException()
-    object Offline : EmailSignInException()
-    object Timeout : EmailSignInException()
-    data class FireAuthException(val fireException: FirebaseAuthException) : EmailSignInException()
+sealed class EmailPasswordSignInException : SignInException() {
+    object Unknown : EmailPasswordSignInException()
+    object Offline : EmailPasswordSignInException()
+    object Timeout : EmailPasswordSignInException()
+    data class AuthException(val exception: FirebaseAuthException) : EmailPasswordSignInException()
+}
+
+sealed class EmailLinkSignInException : SignInException() {
+    object Unknown : EmailLinkSignInException()
+    object Offline : EmailLinkSignInException()
+    object Timeout : EmailLinkSignInException()
+    data class AuthException(val exception: FirebaseAuthException) : EmailLinkSignInException()
 }
 
 sealed class GoogleSignInException : SignInException() {
@@ -25,8 +32,8 @@ sealed class GoogleSignInException : SignInException() {
     object Unknown : GoogleSignInException()
     object Offline : GoogleSignInException()
     object Timeout : GoogleSignInException()
-    data class WrappedApiException(val apiException: ApiException) : GoogleSignInException()
-    data class FireAuthException(val fireException: FirebaseAuthException) : GoogleSignInException()
+    data class WrappedApiException(val exception: ApiException) : GoogleSignInException()
+    data class AuthException(val exception: FirebaseAuthException) : GoogleSignInException()
 }
 
 sealed class PhoneSignInException : SignInException() {
@@ -38,5 +45,5 @@ sealed class PhoneSignInException : SignInException() {
     object InvalidRequest : PhoneSignInException()
     data class InvalidOtp(val otp: String) : PhoneSignInException()
     object QuotaExceeded : PhoneSignInException()
-    data class FireException(val fireException: FirebaseException) : PhoneSignInException()
+    data class AuthException(val exception: FirebaseException) : PhoneSignInException()
 }
