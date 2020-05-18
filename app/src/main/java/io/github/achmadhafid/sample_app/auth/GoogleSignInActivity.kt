@@ -84,7 +84,7 @@ class GoogleSignInActivity : BaseActivity() {
         //region observe sign in progress
 
         observeSignInByGoogle {
-            val (state, hasBeenConsumed) = it.state
+            val (state, hasBeenConsumed) = it.getState()
             when (state) {
                 SignInState.OnProgress -> {
                     showLoadingDialog()

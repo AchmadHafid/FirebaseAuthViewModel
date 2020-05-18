@@ -1,15 +1,13 @@
 package io.github.achmadhafid.firebase_auth_view_model.signin
 
-class SignInEvent<out E : SignInException>(private val value: SignInState<E>) {
+class SignInEvent<out E : SignInException>(private val state: SignInState<E>) {
 
     private var hasBeenConsumed = false
 
-    val state: Pair<SignInState<E>, Boolean>
-        get() {
-            val ret = value to hasBeenConsumed
-            hasBeenConsumed = true
-            return ret
-        }
+    fun getState(isConsumed: Boolean = true) = (state to hasBeenConsumed).also {
+        if (isConsumed) hasBeenConsumed = true
+    }
+
 }
 
 internal typealias AnonymousSignInEvent     = SignInEvent<AnonymousSignInException>

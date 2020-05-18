@@ -2,13 +2,19 @@ package io.github.achmadhafid.sample_app
 
 import android.os.Bundle
 import androidx.lifecycle.observe
+import io.github.achmadhafid.firebase_auth_view_model.signin.EmailLinkSignInException
+import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
+import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInByEmailLink
+import io.github.achmadhafid.firebase_auth_view_model.signin.signInWithEmailLink
 import io.github.achmadhafid.sample_app.auth.AnonymousSignInActivity
-import io.github.achmadhafid.sample_app.auth.EmailSignInActivity
+import io.github.achmadhafid.sample_app.auth.EmailLinkSignInActivity
+import io.github.achmadhafid.sample_app.auth.EmailPasswordSignInActivity
 import io.github.achmadhafid.sample_app.auth.GoogleSignInActivity
 import io.github.achmadhafid.sample_app.auth.PhoneSignInActivity
 import io.github.achmadhafid.sample_app.databinding.ActivityMainBinding
 import io.github.achmadhafid.simplepref.livedata.simplePrefLiveData
 import io.github.achmadhafid.zpack.extension.intent
+import io.github.achmadhafid.zpack.extension.toastShort
 import io.github.achmadhafid.zpack.extension.view.onSingleClick
 
 class MainActivity : BaseActivity() {
@@ -34,8 +40,11 @@ class MainActivity : BaseActivity() {
         binding.btnGoogleSignInDemo.onSingleClick {
             startActivity(intent<GoogleSignInActivity>())
         }
-        binding.btnEmailSignInDemo.onSingleClick {
-            startActivity(intent<EmailSignInActivity>())
+        binding.btnEmailPasswordSignInDemo.onSingleClick {
+            startActivity(intent<EmailPasswordSignInActivity>())
+        }
+        binding.btnEmailLinkSignInDemo.onSingleClick {
+            startActivity(intent<EmailLinkSignInActivity>())
         }
         binding.btnPhoneSignInDemo.onSingleClick {
             startActivity(intent<PhoneSignInActivity>())
@@ -53,6 +62,39 @@ class MainActivity : BaseActivity() {
         }
 
         //endregion
+
+        //region observe sign in progress
+
+        observeSignInByEmailLink {
+            val (state, hasBeenConsumed) = it.getState()
+            when (state) {
+                SignInState.OnProgress -> showLoadingDialog()
+                is SignInState.OnSuccess -> if (!hasBeenConsumed) {
+                    dismissDialog()
+                    toastShort("Sign in success!")
+                }
+                is SignInState.OnFailed -> if (!hasBeenConsumed) {
+                    dismissDialog()
+                    val message = when (val signInException = state.exception) {
+                        EmailLinkSignInException.Unknown          -> "Unknown"
+                        EmailLinkSignInException.Offline          -> "Internet connection unavailable"
+                        EmailLinkSignInException.Timeout          -> "Connection time out"
+                        EmailLinkSignInException.InvalidLink      -> "Invalid Link"
+                        EmailLinkSignInException.NoEmailFound     -> "No Email Found"
+                        EmailLinkSignInException.Unauthenticated  -> "User no authenticated"
+                        is EmailLinkSignInException.AuthException -> {
+                            signInException.exception.message!!
+                        }
+                    }
+                    toastShort(message)
+                }
+            }
+        }
+
+        signInWithEmailLink()
+
+        //endregion
+
     }
 
     //endregion

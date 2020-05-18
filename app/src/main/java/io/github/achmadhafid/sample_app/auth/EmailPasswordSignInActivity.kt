@@ -7,29 +7,31 @@ import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
 import io.github.achmadhafid.firebase_auth_view_model.observeFirebaseAuthState
 import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
-import io.github.achmadhafid.firebase_auth_view_model.signin.AnonymousSignInException
+import io.github.achmadhafid.firebase_auth_view_model.signin.EmailPasswordSignInException
 import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInAnonymously
-import io.github.achmadhafid.firebase_auth_view_model.signin.startSignInAnonymously
+import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInByEmailPassword
+import io.github.achmadhafid.firebase_auth_view_model.signin.startSignInByEmailPassword
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
-import io.github.achmadhafid.sample_app.databinding.ActivityAnonymousSignInBinding
+import io.github.achmadhafid.sample_app.databinding.ActivityEmailPasswordSignInBinding
 import io.github.achmadhafid.zpack.extension.toastShort
+import io.github.achmadhafid.zpack.extension.view.enabled
 import io.github.achmadhafid.zpack.extension.view.onSingleClick
 import io.github.achmadhafid.zpack.extension.view.setTextRes
+import io.github.achmadhafid.zpack.extension.view.value
 
-class AnonymousSignInActivity : BaseActivity() {
+class EmailPasswordSignInActivity : BaseActivity() {
 
     //region View Binding
 
     private val binding by lazy {
-        ActivityAnonymousSignInBinding.inflate(layoutInflater)
+        ActivityEmailPasswordSignInBinding.inflate(layoutInflater)
     }
 
     //endregion
     //region Lifecycle Callback
 
-    @Suppress("ComplexMethod")
+    @Suppress("ComplexMethod", "LongMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -41,10 +43,21 @@ class AnonymousSignInActivity : BaseActivity() {
         //endregion
         //region setup action widget
 
+        binding.btnCreateUser.onSingleClick {
+            with(binding.edtEmail.value to binding.edtPassword.value) {
+                if (first.isNotEmpty() && second.isNotEmpty()) {
+                    startSignInByEmailPassword(first, second, true)
+                }
+            }
+        }
         binding.btnAuth.onSingleClick {
             firebaseUser?.let {
                 firebaseAuth.signOut()
-            } ?: startSignInAnonymously()
+            } ?: with(binding.edtEmail.value to binding.edtPassword.value) {
+                if (first.isNotEmpty() && second.isNotEmpty()) {
+                    startSignInByEmailPassword(first, second)
+                }
+            }
         }
 
         //endregion
@@ -53,18 +66,26 @@ class AnonymousSignInActivity : BaseActivity() {
         observeFirebaseAuthState(authCallbackMode) {
             onSignedIn {
                 Logger.d("User signed in")
-                binding.btnAuth.setTextRes(R.string.logout)
+                with(binding) {
+                    btnAuth.setTextRes(R.string.logout)
+                    listOf(btnCreateUser, inputLayoutEmail, inputLayoutPassword)
+                        .enabled(false)
+                }
             }
             onSignedOut {
                 Logger.d("User signed out")
-                binding.btnAuth.setTextRes(R.string.login)
+                with(binding) {
+                    btnAuth.setTextRes(R.string.login)
+                    listOf(btnCreateUser, inputLayoutEmail, inputLayoutPassword)
+                        .enabled(true)
+                }
             }
         }
 
         //endregion
         //region observe sign in progress
 
-        observeSignInAnonymously {
+        observeSignInByEmailPassword {
             val (state, hasBeenConsumed) = it.getState()
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
@@ -75,10 +96,10 @@ class AnonymousSignInActivity : BaseActivity() {
                 is SignInState.OnFailed -> if (!hasBeenConsumed) {
                     dismissDialog()
                     val message = when (val signInException = state.exception) {
-                        AnonymousSignInException.Unknown -> "Unknown"
-                        AnonymousSignInException.Offline -> "Internet connection unavailable"
-                        AnonymousSignInException.Timeout -> "Connection time out"
-                        is AnonymousSignInException.AuthException -> {
+                        EmailPasswordSignInException.Unknown -> "Unknown"
+                        EmailPasswordSignInException.Offline -> "Internet connection unavailable"
+                        EmailPasswordSignInException.Timeout -> "Connection time out"
+                        is EmailPasswordSignInException.AuthException -> {
                             signInException.exception.message!!
                         }
                     }

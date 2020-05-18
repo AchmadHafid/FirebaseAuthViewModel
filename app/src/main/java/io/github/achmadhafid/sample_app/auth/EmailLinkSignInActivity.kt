@@ -1,31 +1,35 @@
 package io.github.achmadhafid.sample_app.auth
 
 import android.os.Bundle
+import androidx.lifecycle.lifecycleScope
+import com.google.firebase.auth.ktx.actionCodeSettings
 import com.orhanobut.logger.Logger
 import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
 import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
 import io.github.achmadhafid.firebase_auth_view_model.observeFirebaseAuthState
 import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
 import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
-import io.github.achmadhafid.firebase_auth_view_model.signin.EmailPasswordSignInException
+import io.github.achmadhafid.firebase_auth_view_model.signin.EmailLinkSignInException
 import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
-import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInByEmailPassword
-import io.github.achmadhafid.firebase_auth_view_model.signin.startSignInByEmailPassword
+import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInByEmailLink
+import io.github.achmadhafid.firebase_auth_view_model.signin.sendSignInLinkToEmail
 import io.github.achmadhafid.sample_app.BaseActivity
 import io.github.achmadhafid.sample_app.R
-import io.github.achmadhafid.sample_app.databinding.ActivityEmailSignInBinding
+import io.github.achmadhafid.sample_app.databinding.ActivityEmailLinkSignInBinding
 import io.github.achmadhafid.zpack.extension.toastShort
-import io.github.achmadhafid.zpack.extension.view.enabled
+import io.github.achmadhafid.zpack.extension.view.gone
 import io.github.achmadhafid.zpack.extension.view.onSingleClick
 import io.github.achmadhafid.zpack.extension.view.setTextRes
 import io.github.achmadhafid.zpack.extension.view.value
+import io.github.achmadhafid.zpack.extension.view.visible
+import kotlinx.coroutines.launch
 
-class EmailSignInActivity : BaseActivity() {
+class EmailLinkSignInActivity : BaseActivity() {
 
     //region View Binding
 
     private val binding by lazy {
-        ActivityEmailSignInBinding.inflate(layoutInflater)
+        ActivityEmailLinkSignInBinding.inflate(layoutInflater)
     }
 
     //endregion
@@ -43,19 +47,21 @@ class EmailSignInActivity : BaseActivity() {
         //endregion
         //region setup action widget
 
-        binding.btnCreateUser.onSingleClick {
-            with(binding.edtEmail.value to binding.edtPassword.value) {
-                if (first.isNotEmpty() && second.isNotEmpty()) {
-                    startSignInByEmailPassword(first, second, true)
-                }
-            }
-        }
         binding.btnAuth.onSingleClick {
             firebaseUser?.let {
                 firebaseAuth.signOut()
-            } ?: with(binding.edtEmail.value to binding.edtPassword.value) {
-                if (first.isNotEmpty() && second.isNotEmpty()) {
-                    startSignInByEmailPassword(first, second)
+            } ?: lifecycleScope.launch {
+                runCatching {
+                    sendSignInLinkToEmail(binding.edtEmail.value, actionCodeSettings {
+                        url = "https://achmadhafid.page.link/"
+                        handleCodeInApp = true
+                        setAndroidPackageName(packageName, true, "1")
+                        dynamicLinkDomain = "achmadhafid.page.link"
+                    })
+                }.onSuccess {
+                    finish()
+                }.onFailure {
+                    Logger.e("Email link can not be sent: ${it.message}")
                 }
             }
         }
@@ -68,16 +74,14 @@ class EmailSignInActivity : BaseActivity() {
                 Logger.d("User signed in")
                 with(binding) {
                     btnAuth.setTextRes(R.string.logout)
-                    listOf(btnCreateUser, inputLayoutEmail, inputLayoutPassword)
-                        .enabled(false)
+                    inputLayoutEmail.gone()
                 }
             }
             onSignedOut {
                 Logger.d("User signed out")
                 with(binding) {
-                    btnAuth.setTextRes(R.string.login)
-                    listOf(btnCreateUser, inputLayoutEmail, inputLayoutPassword)
-                        .enabled(true)
+                    btnAuth.setTextRes(R.string.btn_send_sign_in_link_to_email)
+                    inputLayoutEmail.visible()
                 }
             }
         }
@@ -85,8 +89,8 @@ class EmailSignInActivity : BaseActivity() {
         //endregion
         //region observe sign in progress
 
-        observeSignInByEmailPassword {
-            val (state, hasBeenConsumed) = it.state
+        observeSignInByEmailLink {
+            val (state, hasBeenConsumed) = it.getState()
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
                 is SignInState.OnSuccess -> if (!hasBeenConsumed) {
@@ -96,10 +100,13 @@ class EmailSignInActivity : BaseActivity() {
                 is SignInState.OnFailed -> if (!hasBeenConsumed) {
                     dismissDialog()
                     val message = when (val signInException = state.exception) {
-                        EmailPasswordSignInException.Unknown -> "Unknown"
-                        EmailPasswordSignInException.Offline -> "Internet connection unavailable"
-                        EmailPasswordSignInException.Timeout -> "Connection time out"
-                        is EmailPasswordSignInException.AuthException -> {
+                        EmailLinkSignInException.Unknown          -> "Unknown"
+                        EmailLinkSignInException.Offline          -> "Internet connection unavailable"
+                        EmailLinkSignInException.Timeout          -> "Connection time out"
+                        EmailLinkSignInException.InvalidLink      -> "Invalid Link"
+                        EmailLinkSignInException.NoEmailFound     -> "No Email Found"
+                        EmailLinkSignInException.Unauthenticated  -> "User no authenticated"
+                        is EmailLinkSignInException.AuthException -> {
                             signInException.exception.message!!
                         }
                     }
@@ -112,4 +119,5 @@ class EmailSignInActivity : BaseActivity() {
     }
 
     //endregion
+
 }

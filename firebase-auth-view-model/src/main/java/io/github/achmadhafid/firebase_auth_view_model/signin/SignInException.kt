@@ -4,7 +4,9 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuthException
 
-sealed class SignInException
+sealed class SignInException {
+    fun toState() = SignInState.OnFailed(this)
+}
 
 sealed class AnonymousSignInException : SignInException() {
     object Unknown : AnonymousSignInException()
@@ -24,6 +26,9 @@ sealed class EmailLinkSignInException : SignInException() {
     object Unknown : EmailLinkSignInException()
     object Offline : EmailLinkSignInException()
     object Timeout : EmailLinkSignInException()
+    object InvalidLink : EmailLinkSignInException()
+    object NoEmailFound : EmailLinkSignInException()
+    object Unauthenticated : EmailLinkSignInException()
     data class AuthException(val exception: FirebaseAuthException) : EmailLinkSignInException()
 }
 

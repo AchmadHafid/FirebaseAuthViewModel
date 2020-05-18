@@ -34,7 +34,7 @@
             android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/large"
-            app:constraint_referenced_ids="btn_anonymous_sign_in_demo,btn_email_sign_in_demo,btn_phone_sign_in_demo,btn_google_sign_in_demo"
+            app:constraint_referenced_ids="btn_anonymous_sign_in_demo,btn_email_password_sign_in_demo,btn_email_link_sign_in_demo,btn_phone_sign_in_demo,btn_google_sign_in_demo"
             app:flow_maxElementsWrap="1"
             app:flow_wrapMode="chain"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -49,10 +49,16 @@
             android:text="@string/btn_anonymous_sign_in_demo" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_email_sign_in_demo"
+            android:id="@+id/btn_email_password_sign_in_demo"
             android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
-            android:text="@string/btn_email_sign_in_demo" />
+            android:text="@string/btn_email_password_sign_in_demo" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_email_link_sign_in_demo"
+            android:layout_width="@dimen/match_constraint"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_email_link_sign_in_demo" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_phone_sign_in_demo"

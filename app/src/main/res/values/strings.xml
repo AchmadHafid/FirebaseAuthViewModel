@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name" translatable="false">FirebaseAuth ViewModel</string>
-<!--    <string name="web_client_id" translatable="false">REPLACE WITH YOUR OWN WEB CLIENT ID WHICH IS AVAILABLE ON GCP CONSOLE</string>-->
+    <!--    <string name="web_client_id" translatable="false">REPLACE WITH YOUR OWN WEB CLIENT ID WHICH IS AVAILABLE ON GCP CONSOLE</string>-->
     <string name="web_client_id" translatable="false">584415134674-bdamtfudn1v8riij3vlhqhg9rmfv50cp.apps.googleusercontent.com</string>
 
     <!-- region Common Wording -->
@@ -13,7 +13,8 @@
     <!-- region Activity Title -->
 
     <string name="activity_anonymous_sign_in_title">Anonymous Sign In</string>
-    <string name="activity_email_sign_in_title">Email Sign In</string>
+    <string name="activity_email_password_sign_in_title">Email Password Sign In</string>
+    <string name="activity_email_Link_sign_in_title">Email Link Sign In</string>
     <string name="activity_google_sign_in_title">Google Sign In</string>
     <string name="activity_phone_sign_in_title">Phone Sign In</string>
 
@@ -26,17 +27,19 @@
     <!-- region Main Activity -->
 
     <string name="btn_anonymous_sign_in_demo">Anonymous Sign In</string>
-    <string name="btn_email_sign_in_demo">Email Sign In</string>
+    <string name="btn_email_password_sign_in_demo">Email Password Sign In</string>
+    <string name="btn_email_link_sign_in_demo">Email Link Sign In</string>
     <string name="btn_phone_sign_in_demo">Phone Sign In</string>
     <string name="btn_google_sign_in_demo">Google Sign In</string>
     <string name="cb_auth_callback_mode">Always check auth state when component\'s lifecycle become active</string>
 
     <!-- endregion -->
-    <!-- region Email Sign In Activity -->
+    <!-- region Email Password Sign In Activity -->
 
     <string name="btn_create_user">Create User</string>
     <string name="input_layout_email_hint">Email</string>
     <string name="input_layout_password_hint">Password</string>
+    <string name="btn_send_sign_in_link_to_email">Send Sign In Link to Email</string>
 
     <!-- endregion -->
     <!-- region Google Sign In Activity -->
