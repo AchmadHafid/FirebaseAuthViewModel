@@ -3,6 +3,7 @@
 package io.github.achmadhafid.firebase_auth_view_model.signin
 
 import android.content.Context
+import android.content.Intent
 import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
@@ -12,7 +13,6 @@ import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.SignInMethodQueryResult
-import com.google.firebase.auth.ktx.actionCodeSettings
 import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
 import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
 import io.github.achmadhafid.zpack.extension.getViewModel
@@ -150,19 +150,21 @@ fun AppCompatActivity.signInWithEmailLink(
     signInViewModel.signInWithEmailLink(this, emailLink ?: intent.data.toString(), timeout)
 }
 
-fun AppCompatActivity.linkWithCredential(
+fun AppCompatActivity.linkEmailWithCredential(
     emailLink: String? = null,
     timeout: Long = Long.MAX_VALUE
 ) {
     signInViewModel.linkWithCredential(this, emailLink ?: intent.data.toString(), timeout)
 }
 
-fun AppCompatActivity.reAuthenticateWithCredential(
+fun AppCompatActivity.reAuthenticateEmailWithCredential(
     emailLink: String? = null,
     timeout: Long = Long.MAX_VALUE
 ) {
     signInViewModel.reAuthenticateWithCredential(this, emailLink ?: intent.data.toString(), timeout)
 }
+
+inline val AppCompatActivity.isFromEmailLink get() = intent.isFromEmailLink
 
 //endregion
 //region Fragment
@@ -199,7 +201,7 @@ fun Fragment.signInWithEmailLink(emailLink: String? = null, timeout: Long = Long
     )
 }
 
-fun Fragment.linkWithCredential(emailLink: String? = null, timeout: Long = Long.MAX_VALUE) {
+fun Fragment.linkEmailWithCredential(emailLink: String? = null, timeout: Long = Long.MAX_VALUE) {
     signInViewModel.linkWithCredential(
         requireContext(),
         emailLink ?: requireActivity().intent.data.toString(),
@@ -207,7 +209,7 @@ fun Fragment.linkWithCredential(emailLink: String? = null, timeout: Long = Long.
     )
 }
 
-fun Fragment.reAuthenticateWithCredential(
+fun Fragment.reAuthenticateEmailWithCredential(
     emailLink: String? = null,
     timeout: Long = Long.MAX_VALUE
 ) {
@@ -218,8 +220,13 @@ fun Fragment.reAuthenticateWithCredential(
     )
 }
 
+inline val Fragment.isFromEmailLink get() = requireActivity().intent.isFromEmailLink
+
 //endregion
 //region Email Sign In Method
+
+inline val Intent.isFromEmailLink
+    get() = data?.let { firebaseAuth.isSignInWithEmailLink(it.toString()) } ?: false
 
 inline val SignInMethodQueryResult.isFromEmailPassword
     get() = signInMethods!!.contains(EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD)

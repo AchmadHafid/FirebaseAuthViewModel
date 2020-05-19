@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.lifecycle.observe
 import io.github.achmadhafid.firebase_auth_view_model.signin.EmailLinkSignInException
 import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
+import io.github.achmadhafid.firebase_auth_view_model.signin.isFromEmailLink
 import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInByEmailLink
 import io.github.achmadhafid.firebase_auth_view_model.signin.signInWithEmailLink
 import io.github.achmadhafid.sample_app.auth.AnonymousSignInActivity
@@ -62,8 +63,7 @@ class MainActivity : BaseActivity() {
         }
 
         //endregion
-
-        //region observe sign in progress
+        //region observe sign in by email link progress
 
         observeSignInByEmailLink {
             val (state, hasBeenConsumed) = it.getState()
@@ -82,19 +82,18 @@ class MainActivity : BaseActivity() {
                         EmailLinkSignInException.InvalidLink      -> "Invalid Link"
                         EmailLinkSignInException.NoEmailFound     -> "No Email Found"
                         EmailLinkSignInException.Unauthenticated  -> "User no authenticated"
-                        is EmailLinkSignInException.AuthException -> {
-                            signInException.exception.message!!
-                        }
+                        is EmailLinkSignInException.AuthException -> signInException.exception.message
                     }
-                    toastShort(message)
+                    toastShort(message ?: "no error message available")
                 }
             }
         }
 
-        signInWithEmailLink()
+        if (isFromEmailLink) {
+            signInWithEmailLink()
+        }
 
         //endregion
-
     }
 
     //endregion
