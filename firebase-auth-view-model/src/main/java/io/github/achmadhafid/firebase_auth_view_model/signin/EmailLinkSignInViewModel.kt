@@ -39,7 +39,7 @@ internal class EmailLinkSignInViewModel : SignInViewModel<EmailLinkSignInExcepti
         timeout: Long = Long.MAX_VALUE
     ) {
         context.email.let { email ->
-            if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            if (email.isValidEmail) {
                 if (firebaseAuth.isSignInWithEmailLink(emailLink)) {
                     executeSignInTask(timeout, context) {
                         firebaseAuth.signInWithEmailLink(email, emailLink)
@@ -51,36 +51,13 @@ internal class EmailLinkSignInViewModel : SignInViewModel<EmailLinkSignInExcepti
     }
 
     @Suppress("NestedBlockDepth")
-    internal fun linkWithCredential(
-        context: Context,
-        emailLink: String,
-        timeout: Long = Long.MAX_VALUE
-    ) {
-        context.email.let { email ->
-            if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                firebaseUser?.let { user ->
-                    if (firebaseAuth.isSignInWithEmailLink(emailLink)) {
-                        EmailAuthProvider.getCredentialWithLink(email, emailLink)
-                            .let { credential ->
-                                executeSignInTask(timeout, context) {
-                                    user.linkWithCredential(credential)
-                                        .await()
-                                }
-                            }
-                    } else onFailed(EmailLinkSignInException.InvalidLink)
-                } ?: onFailed(EmailLinkSignInException.Unauthenticated)
-            } else onFailed(EmailLinkSignInException.NoEmailFound)
-        }
-    }
-
-    @Suppress("NestedBlockDepth")
     internal fun reAuthenticateWithCredential(
         context: Context,
         emailLink: String,
         timeout: Long = Long.MAX_VALUE
     ) {
         context.email.let { email ->
-            if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            if (email.isValidEmail) {
                 firebaseUser?.let { user ->
                     if (firebaseAuth.isSignInWithEmailLink(emailLink)) {
                         EmailAuthProvider.getCredentialWithLink(email, emailLink)
@@ -96,32 +73,33 @@ internal class EmailLinkSignInViewModel : SignInViewModel<EmailLinkSignInExcepti
         }
     }
 
-}
-
-//region Internal shared preference to store user entered email address
-
-private val Context.email
-    get() =
-        getSharedPreferences(SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE)
-            .getString(KEY_EMAIL, "")!!
-
-private fun Context.setEmail(email: String) {
-    getSharedPreferences(SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE)
-        .edit {
-            putString(KEY_EMAIL, email)
+    @Suppress("NestedBlockDepth")
+    internal fun linkWithCredential(
+        context: Context,
+        emailLink: String,
+        timeout: Long = Long.MAX_VALUE
+    ) {
+        context.email.let { email ->
+            if (email.isValidEmail) {
+                firebaseUser?.let { user ->
+                    if (firebaseAuth.isSignInWithEmailLink(emailLink)) {
+                        EmailAuthProvider.getCredentialWithLink(email, emailLink)
+                            .let { credential ->
+                                executeSignInTask(timeout, context) {
+                                    user.linkWithCredential(credential)
+                                        .await()
+                                }
+                            }
+                    } else onFailed(EmailLinkSignInException.InvalidLink)
+                } ?: onFailed(EmailLinkSignInException.Unauthenticated)
+            } else onFailed(EmailLinkSignInException.NoEmailFound)
         }
+    }
+
 }
 
-private const val SHARED_PREFERENCE_NAME = "firebase_auth"
-private const val KEY_EMAIL              = "email_link"
-
-//endregion
 //region Consumer API via extension functions and inline values
 //region Activity
-
-fun AppCompatActivity.observeSignInByEmailLink(observer: (EmailLinkSignInEvent) -> Unit) {
-    signInViewModel.event.observe(this, observer)
-}
 
 suspend fun AppCompatActivity.sendSignInLinkToEmail(
     email: String,
@@ -143,35 +121,35 @@ suspend fun AppCompatActivity.fetchSignInMethodsForEmail(
     }
 }
 
+inline val AppCompatActivity.isFromEmailLink get() = intent.isFromEmailLink
+
+fun AppCompatActivity.observeSignInByEmailLink(observer: (EmailLinkSignInEvent) -> Unit) {
+    signInViewModel.event.observe(this, observer)
+}
+
 fun AppCompatActivity.signInWithEmailLink(
     emailLink: String? = null,
     timeout: Long = Long.MAX_VALUE
 ) {
-    signInViewModel.signInWithEmailLink(this, emailLink ?: intent.data.toString(), timeout)
-}
-
-fun AppCompatActivity.linkEmailWithCredential(
-    emailLink: String? = null,
-    timeout: Long = Long.MAX_VALUE
-) {
-    signInViewModel.linkWithCredential(this, emailLink ?: intent.data.toString(), timeout)
+    signInViewModel.signInWithEmailLink(this, emailLink ?: intent.emailLink, timeout)
 }
 
 fun AppCompatActivity.reAuthenticateEmailWithCredential(
     emailLink: String? = null,
     timeout: Long = Long.MAX_VALUE
 ) {
-    signInViewModel.reAuthenticateWithCredential(this, emailLink ?: intent.data.toString(), timeout)
+    signInViewModel.reAuthenticateWithCredential(this, emailLink ?: intent.emailLink, timeout)
 }
 
-inline val AppCompatActivity.isFromEmailLink get() = intent.isFromEmailLink
+fun AppCompatActivity.linkEmailWithCredential(
+    emailLink: String? = null,
+    timeout: Long = Long.MAX_VALUE
+) {
+    signInViewModel.linkWithCredential(this, emailLink ?: intent.emailLink, timeout)
+}
 
 //endregion
 //region Fragment
-
-fun Fragment.observeSignInByEmailLink(observer: (EmailLinkSignInEvent) -> Unit) {
-    signInViewModel.event.observe(viewLifecycleOwner, observer)
-}
 
 suspend fun Fragment.sendSignInLinkToEmail(
     email: String,
@@ -193,10 +171,16 @@ suspend fun Fragment.fetchSignInMethodsForEmail(
     }
 }
 
+inline val Fragment.isFromEmailLink get() = requireActivity().intent.isFromEmailLink
+
+fun Fragment.observeSignInByEmailLink(observer: (EmailLinkSignInEvent) -> Unit) {
+    signInViewModel.event.observe(viewLifecycleOwner, observer)
+}
+
 fun Fragment.signInWithEmailLink(emailLink: String? = null, timeout: Long = Long.MAX_VALUE) {
     signInViewModel.signInWithEmailLink(
         requireContext(),
-        emailLink ?: requireActivity().intent.data.toString(),
+        emailLink ?: requireActivity().intent.emailLink,
         timeout
     )
 }
@@ -204,7 +188,7 @@ fun Fragment.signInWithEmailLink(emailLink: String? = null, timeout: Long = Long
 fun Fragment.linkEmailWithCredential(emailLink: String? = null, timeout: Long = Long.MAX_VALUE) {
     signInViewModel.linkWithCredential(
         requireContext(),
-        emailLink ?: requireActivity().intent.data.toString(),
+        emailLink ?: requireActivity().intent.emailLink,
         timeout
     )
 }
@@ -215,12 +199,10 @@ fun Fragment.reAuthenticateEmailWithCredential(
 ) {
     signInViewModel.reAuthenticateWithCredential(
         requireContext(),
-        emailLink ?: requireActivity().intent.data.toString(),
+        emailLink ?: requireActivity().intent.emailLink,
         timeout
     )
 }
-
-inline val Fragment.isFromEmailLink get() = requireActivity().intent.isFromEmailLink
 
 //endregion
 //region Email Sign In Method
@@ -236,12 +218,32 @@ inline val SignInMethodQueryResult.isFromEmailLink
 
 //endregion
 //endregion
-//region Internal extension functions
+//region Private extension functions helper
 
 private inline val AppCompatActivity.signInViewModel
     get() = getViewModel<EmailLinkSignInViewModel>()
 
 private inline val Fragment.signInViewModel
     get() = getViewModel<EmailLinkSignInViewModel>()
+
+private val Context.email
+    get() = getSharedPreferences(SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE)
+        .getString(KEY_EMAIL, "")!!
+
+private fun Context.setEmail(email: String) {
+    getSharedPreferences(SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE)
+        .edit {
+            putString(KEY_EMAIL, email)
+        }
+}
+
+private const val SHARED_PREFERENCE_NAME = "firebase_auth"
+private const val KEY_EMAIL              = "email_link"
+
+private val Intent.emailLink
+    get() = data.toString()
+
+private val String.isValidEmail
+    get() = Patterns.EMAIL_ADDRESS.matcher(this).matches()
 
 //endregion
