@@ -27,6 +27,22 @@ class AnonymousSignInActivity : BaseActivity() {
     }
 
     //endregion
+    //region Auth State Listener
+
+    private val authStateListener by lazy {
+        observeFirebaseAuthState(authCallbackMode) {
+            onSignedIn {
+                Logger.d("User signed in")
+                binding.btnAuth.setTextRes(R.string.logout)
+            }
+            onSignedOut {
+                Logger.d("User signed out")
+                binding.btnAuth.setTextRes(R.string.login)
+            }
+        }
+    }
+
+    //endregion
     //region Lifecycle Callback
 
     @Suppress("ComplexMethod")
@@ -44,28 +60,14 @@ class AnonymousSignInActivity : BaseActivity() {
         binding.btnAuth.onSingleClick {
             firebaseUser?.let {
                 firebaseAuth.signOut()
-            } ?: startSignInAnonymously()
-        }
-
-        //endregion
-        //region observe auth state
-
-        observeFirebaseAuthState(authCallbackMode) {
-            onSignedIn {
-                Logger.d("User signed in")
-                binding.btnAuth.setTextRes(R.string.logout)
-            }
-            onSignedOut {
-                Logger.d("User signed out")
-                binding.btnAuth.setTextRes(R.string.login)
-            }
+            } ?: startSignInAnonymously(authStateListener)
         }
 
         //endregion
         //region observe sign in progress
 
         observeSignInAnonymously {
-            val (state, hasBeenConsumed) = it.getState()
+            val (_, state, hasBeenConsumed) = it.getEvent()
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
                 is SignInState.OnSuccess -> if (!hasBeenConsumed) {
@@ -75,17 +77,17 @@ class AnonymousSignInActivity : BaseActivity() {
                 is SignInState.OnFailed -> if (!hasBeenConsumed) {
                     dismissDialog()
                     val message = when (val signInException = state.exception) {
-                        AnonymousSignInException.Unknown -> "Unknown"
-                        AnonymousSignInException.Offline -> "Internet connection unavailable"
-                        AnonymousSignInException.Timeout -> "Connection time out"
-                        is AnonymousSignInException.AuthException -> {
-                            signInException.exception.message!!
-                        }
+                        AnonymousSignInException.Unknown          -> "Unknown"
+                        AnonymousSignInException.Offline          -> "Internet connection unavailable"
+                        AnonymousSignInException.Timeout          -> "Connection time out"
+                        is AnonymousSignInException.AuthException -> signInException.exception.message!!
                     }
                     toastShort(message)
                 }
             }
         }
+
+        authStateListener
 
         //endregion
     }

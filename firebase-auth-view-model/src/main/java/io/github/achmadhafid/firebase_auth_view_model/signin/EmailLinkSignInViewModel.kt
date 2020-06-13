@@ -13,6 +13,7 @@ import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.SignInMethodQueryResult
+import io.github.achmadhafid.firebase_auth_view_model.AuthStateListener
 import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
 import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
 import io.github.achmadhafid.zpack.extension.getViewModel
@@ -24,29 +25,22 @@ import kotlinx.coroutines.withTimeout
 
 internal class EmailLinkSignInViewModel : SignInViewModel<EmailLinkSignInException>() {
 
-    override val offlineException: EmailLinkSignInException
-        get() = EmailLinkSignInException.Offline
-
-    override fun parseException(throwable: Throwable): EmailLinkSignInException = when (throwable) {
-        is TimeoutCancellationException -> EmailLinkSignInException.Timeout
-        is FirebaseAuthException -> EmailLinkSignInException.AuthException(throwable)
-        else -> EmailLinkSignInException.Unknown
-    }
-
     internal fun signInWithEmailLink(
         context: Context,
         emailLink: String,
+        authStateListener: AuthStateListener,
         timeout: Long = Long.MAX_VALUE
     ) {
+        val task = SignInTask.SignIn(EmailAuthProvider.PROVIDER_ID)
         context.email.let { email ->
             if (email.isValidEmail) {
                 if (firebaseAuth.isSignInWithEmailLink(emailLink)) {
-                    executeSignInTask(timeout, context) {
+                    executeTask(context, task, authStateListener, timeout) {
                         firebaseAuth.signInWithEmailLink(email, emailLink)
                             .await()
                     }
-                } else onFailed(EmailLinkSignInException.InvalidLink)
-            } else onFailed(EmailLinkSignInException.NoEmailFound)
+                } else onFailed(task, EmailLinkSignInException.InvalidLink)
+            } else onFailed(task, EmailLinkSignInException.NoEmailFound)
         }
     }
 
@@ -54,22 +48,24 @@ internal class EmailLinkSignInViewModel : SignInViewModel<EmailLinkSignInExcepti
     internal fun reAuthenticateWithCredential(
         context: Context,
         emailLink: String,
+        authStateListener: AuthStateListener,
         timeout: Long = Long.MAX_VALUE
     ) {
+        val task = SignInTask.SignIn(EmailAuthProvider.PROVIDER_ID)
         context.email.let { email ->
             if (email.isValidEmail) {
                 firebaseUser?.let { user ->
                     if (firebaseAuth.isSignInWithEmailLink(emailLink)) {
                         EmailAuthProvider.getCredentialWithLink(email, emailLink)
                             .let { credential ->
-                                executeSignInTask(timeout, context) {
+                                executeTask(context, task, authStateListener, timeout) {
                                     user.reauthenticateAndRetrieveData(credential)
                                         .await()
                                 }
                             }
-                    } else onFailed(EmailLinkSignInException.InvalidLink)
-                } ?: onFailed(EmailLinkSignInException.Unauthenticated)
-            } else onFailed(EmailLinkSignInException.NoEmailFound)
+                    } else onFailed(task, EmailLinkSignInException.InvalidLink)
+                } ?: onFailed(task, EmailLinkSignInException.Unauthenticated)
+            } else onFailed(task, EmailLinkSignInException.NoEmailFound)
         }
     }
 
@@ -77,23 +73,34 @@ internal class EmailLinkSignInViewModel : SignInViewModel<EmailLinkSignInExcepti
     internal fun linkWithCredential(
         context: Context,
         emailLink: String,
+        authStateListener: AuthStateListener,
         timeout: Long = Long.MAX_VALUE
     ) {
+        val task = SignInTask.LinkCredential(EmailAuthProvider.PROVIDER_ID)
         context.email.let { email ->
             if (email.isValidEmail) {
                 firebaseUser?.let { user ->
                     if (firebaseAuth.isSignInWithEmailLink(emailLink)) {
                         EmailAuthProvider.getCredentialWithLink(email, emailLink)
                             .let { credential ->
-                                executeSignInTask(timeout, context) {
+                                executeTask(context, task, authStateListener, timeout) {
                                     user.linkWithCredential(credential)
                                         .await()
                                 }
                             }
-                    } else onFailed(EmailLinkSignInException.InvalidLink)
-                } ?: onFailed(EmailLinkSignInException.Unauthenticated)
-            } else onFailed(EmailLinkSignInException.NoEmailFound)
+                    } else onFailed(task, EmailLinkSignInException.InvalidLink)
+                } ?: onFailed(task, EmailLinkSignInException.Unauthenticated)
+            } else onFailed(task, EmailLinkSignInException.NoEmailFound)
         }
+    }
+
+    override val offlineException: EmailLinkSignInException
+        get() = EmailLinkSignInException.Offline
+
+    override fun parseException(throwable: Throwable): EmailLinkSignInException = when (throwable) {
+        is TimeoutCancellationException -> EmailLinkSignInException.Timeout
+        is FirebaseAuthException -> EmailLinkSignInException.AuthException(throwable)
+        else -> EmailLinkSignInException.Unknown
     }
 
 }
@@ -127,25 +134,43 @@ fun AppCompatActivity.observeSignInByEmailLink(observer: (EmailLinkSignInEvent) 
     signInViewModel.event.observe(this, observer)
 }
 
-fun AppCompatActivity.signInWithEmailLink(
+fun AppCompatActivity.startSignInByEmailLink(
     emailLink: String? = null,
+    authStateListener: AuthStateListener,
     timeout: Long = Long.MAX_VALUE
 ) {
-    signInViewModel.signInWithEmailLink(this, emailLink ?: intent.emailLink, timeout)
+    signInViewModel.signInWithEmailLink(
+        this,
+        emailLink ?: intent.emailLink,
+        authStateListener,
+        timeout
+    )
 }
 
-fun AppCompatActivity.reAuthenticateEmailWithCredential(
+fun AppCompatActivity.reAuthenticateByEmailLink(
     emailLink: String? = null,
+    authStateListener: AuthStateListener,
     timeout: Long = Long.MAX_VALUE
 ) {
-    signInViewModel.reAuthenticateWithCredential(this, emailLink ?: intent.emailLink, timeout)
+    signInViewModel.reAuthenticateWithCredential(
+        this,
+        emailLink ?: intent.emailLink,
+        authStateListener,
+        timeout
+    )
 }
 
-fun AppCompatActivity.linkEmailWithCredential(
+fun AppCompatActivity.linkToCurrentUserFromEmailLink(
     emailLink: String? = null,
+    authStateListener: AuthStateListener,
     timeout: Long = Long.MAX_VALUE
 ) {
-    signInViewModel.linkWithCredential(this, emailLink ?: intent.emailLink, timeout)
+    signInViewModel.linkWithCredential(
+        this,
+        emailLink ?: intent.emailLink,
+        authStateListener,
+        timeout
+    )
 }
 
 //endregion
@@ -177,29 +202,41 @@ fun Fragment.observeSignInByEmailLink(observer: (EmailLinkSignInEvent) -> Unit) 
     signInViewModel.event.observe(viewLifecycleOwner, observer)
 }
 
-fun Fragment.signInWithEmailLink(emailLink: String? = null, timeout: Long = Long.MAX_VALUE) {
+fun Fragment.startSignInByEmailLink(
+    emailLink: String? = null,
+    authStateListener: AuthStateListener,
+    timeout: Long = Long.MAX_VALUE
+) {
     signInViewModel.signInWithEmailLink(
         requireContext(),
         emailLink ?: requireActivity().intent.emailLink,
+        authStateListener,
         timeout
     )
 }
 
-fun Fragment.linkEmailWithCredential(emailLink: String? = null, timeout: Long = Long.MAX_VALUE) {
+fun Fragment.linkToCurrentUserFromEmailLink(
+    emailLink: String? = null,
+    authStateListener: AuthStateListener,
+    timeout: Long = Long.MAX_VALUE
+) {
     signInViewModel.linkWithCredential(
         requireContext(),
         emailLink ?: requireActivity().intent.emailLink,
+        authStateListener,
         timeout
     )
 }
 
-fun Fragment.reAuthenticateEmailWithCredential(
+fun Fragment.reAuthenticateByEmailLink(
     emailLink: String? = null,
+    authStateListener: AuthStateListener,
     timeout: Long = Long.MAX_VALUE
 ) {
     signInViewModel.reAuthenticateWithCredential(
         requireContext(),
         emailLink ?: requireActivity().intent.emailLink,
+        authStateListener,
         timeout
     )
 }

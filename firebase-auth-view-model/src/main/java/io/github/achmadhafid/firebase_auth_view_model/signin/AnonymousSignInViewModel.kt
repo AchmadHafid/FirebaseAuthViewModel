@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.observe
 import com.google.firebase.auth.FirebaseAuthException
+import io.github.achmadhafid.firebase_auth_view_model.AuthStateListener
 import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
 import io.github.achmadhafid.zpack.extension.getViewModel
 import kotlinx.coroutines.TimeoutCancellationException
@@ -22,8 +23,12 @@ internal class AnonymousSignInViewModel : SignInViewModel<AnonymousSignInExcepti
         else -> AnonymousSignInException.Unknown
     }
 
-    internal fun signInAnonymously(timeout: Long = Long.MAX_VALUE, context: Context? = null) {
-        executeSignInTask(timeout, context) {
+    internal fun signInAnonymously(
+        context: Context? = null,
+        authStateListener: AuthStateListener,
+        timeout: Long = Long.MAX_VALUE
+    ) {
+        executeTask(context, SignInTask.SignIn(SignInTask.Anonymous), authStateListener, timeout) {
             firebaseAuth.signInAnonymously().await()
         }
     }
@@ -36,8 +41,11 @@ fun AppCompatActivity.observeSignInAnonymously(observer: (AnonymousSignInEvent) 
     signInViewModel.event.observe(this, observer)
 }
 
-fun AppCompatActivity.startSignInAnonymously(timeout: Long = Long.MAX_VALUE) {
-    signInViewModel.signInAnonymously(timeout, this)
+fun AppCompatActivity.startSignInAnonymously(
+    authStateListener: AuthStateListener,
+    timeout: Long = Long.MAX_VALUE
+) {
+    signInViewModel.signInAnonymously(this, authStateListener, timeout)
 }
 
 //endregion
@@ -47,8 +55,11 @@ fun Fragment.observeSignInAnonymously(observer: (AnonymousSignInEvent) -> Unit) 
     signInViewModel.event.observe(viewLifecycleOwner, observer)
 }
 
-fun Fragment.startSignInAnonymously(timeout: Long = Long.MAX_VALUE) {
-    signInViewModel.signInAnonymously(timeout, requireContext())
+fun Fragment.startSignInAnonymously(
+    authStateListener: AuthStateListener,
+    timeout: Long = Long.MAX_VALUE
+) {
+    signInViewModel.signInAnonymously(requireContext(), authStateListener, timeout)
 }
 
 //endregion

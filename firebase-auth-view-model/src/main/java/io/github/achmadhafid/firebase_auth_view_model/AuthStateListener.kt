@@ -5,29 +5,26 @@ import com.google.firebase.auth.FirebaseUser
 data class AuthStateListener(
     internal var onSignInListener: (FirebaseUser) -> Unit = {},
     internal var onSignOutListener: () -> Unit = {},
-    internal var onAnyListener: (FirebaseUser?) -> Unit = {}
+    internal var onCredentialLinkedListener: (providerId: String) -> Unit = {},
+    internal var onCredentialUnlinkedListener: (providerId: String) -> Unit = {}
 )
 
 //region Kotlin DSL builder
 
 fun AuthStateListener.onSignedIn(callback: (FirebaseUser) -> Unit) {
-    onSignInListener = { user ->
-        callback(user)
-        onAnyListener(user)
-    }
+    onSignInListener = callback
 }
 
 fun AuthStateListener.onSignedOut(callback: () -> Unit) {
-    onSignOutListener = {
-//        if (!isSigningIn) {
-            callback()
-            onAnyListener(null)
-//        }
-    }
+    onSignOutListener = callback
 }
 
-fun AuthStateListener.onAny(callback: (FirebaseUser?) -> Unit) {
-    onAnyListener = callback
+fun AuthStateListener.onCredentialLinked(callback: (String) -> Unit) {
+    onCredentialLinkedListener = callback
+}
+
+fun AuthStateListener.onCredentialUnlinked(callback: (String) -> Unit) {
+    onCredentialUnlinkedListener = callback
 }
 
 //endregion

@@ -44,8 +44,11 @@
     <!-- endregion -->
     <!-- region Google Sign In Activity -->
 
+    <string name="btn_link">Link with current user</string>
+    <string name="btn_unlink">Unlink Google Account</string>
     <string name="btn_logout">@string/logout</string>
     <string name="cb_force_account_chooser">Always show account chooser dialog</string>
+    <string name="cb_link_if_login">Link account if already signed in</string>
 
     <!-- endregion -->
     <!-- region Phone Sign In Activity -->

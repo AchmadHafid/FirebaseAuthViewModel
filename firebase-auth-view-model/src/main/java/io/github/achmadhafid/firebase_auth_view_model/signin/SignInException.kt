@@ -19,6 +19,8 @@ sealed class EmailPasswordSignInException : SignInException() {
     object Unknown : EmailPasswordSignInException()
     object Offline : EmailPasswordSignInException()
     object Timeout : EmailPasswordSignInException()
+    object InvalidEmail : EmailPasswordSignInException()
+    object Unauthenticated : EmailPasswordSignInException()
     data class AuthException(val exception: FirebaseAuthException) : EmailPasswordSignInException()
 }
 
@@ -33,12 +35,29 @@ sealed class EmailLinkSignInException : SignInException() {
 }
 
 sealed class GoogleSignInException : SignInException() {
+
     object Canceled : GoogleSignInException()
     object Unknown : GoogleSignInException()
     object Offline : GoogleSignInException()
     object Timeout : GoogleSignInException()
+    //region Link Google Account
+    object AlreadySignedIn : GoogleSignInException()
+    object AlreadyInUse : GoogleSignInException()
+    //endregion
+    //region Unlink Google Account
+    object Unauthenticated : GoogleSignInException()
+    object NotLinkedWithGoogleSignIn : GoogleSignInException()
+    object NoOtherSignInProviderFound : GoogleSignInException()
+    //endregion
     data class WrappedApiException(val exception: ApiException) : GoogleSignInException()
     data class AuthException(val exception: FirebaseAuthException) : GoogleSignInException()
+
+    companion object {
+        const val USER_ALREADY_SIGNED_IN    = "ERROR_USER_ALREADY_SIGNED_IN"
+        const val CREDENTIAL_ALREADY_IN_USE = "ERROR_CREDENTIAL_ALREADY_IN_USE"
+
+        internal inline val onUserAlreadySignedIn get() = IllegalStateException(USER_ALREADY_SIGNED_IN)
+    }
 }
 
 sealed class PhoneSignInException : SignInException() {

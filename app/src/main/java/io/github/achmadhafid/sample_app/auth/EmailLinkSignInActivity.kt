@@ -33,6 +33,28 @@ class EmailLinkSignInActivity : BaseActivity() {
     }
 
     //endregion
+    //region Auth State Listener
+
+    private val authStateListener by lazy {
+        observeFirebaseAuthState(authCallbackMode) {
+            onSignedIn {
+                Logger.d("User signed in")
+                with(binding) {
+                    btnAuth.setTextRes(R.string.logout)
+                    inputLayoutEmail.gone()
+                }
+            }
+            onSignedOut {
+                Logger.d("User signed out")
+                with(binding) {
+                    btnAuth.setTextRes(R.string.btn_send_sign_in_link_to_email)
+                    inputLayoutEmail.visible()
+                }
+            }
+        }
+    }
+
+    //endregion
     //region Lifecycle Callback
 
     @Suppress("ComplexMethod", "LongMethod")
@@ -67,30 +89,10 @@ class EmailLinkSignInActivity : BaseActivity() {
         }
 
         //endregion
-        //region observe auth state
-
-        observeFirebaseAuthState(authCallbackMode) {
-            onSignedIn {
-                Logger.d("User signed in")
-                with(binding) {
-                    btnAuth.setTextRes(R.string.logout)
-                    inputLayoutEmail.gone()
-                }
-            }
-            onSignedOut {
-                Logger.d("User signed out")
-                with(binding) {
-                    btnAuth.setTextRes(R.string.btn_send_sign_in_link_to_email)
-                    inputLayoutEmail.visible()
-                }
-            }
-        }
-
-        //endregion
         //region observe sign in progress
 
         observeSignInByEmailLink {
-            val (state, hasBeenConsumed) = it.getState()
+            val (_, state, hasBeenConsumed) = it.getEvent()
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
                 is SignInState.OnSuccess -> if (!hasBeenConsumed) {
@@ -106,14 +108,14 @@ class EmailLinkSignInActivity : BaseActivity() {
                         EmailLinkSignInException.InvalidLink      -> "Invalid Link"
                         EmailLinkSignInException.NoEmailFound     -> "No Email Found"
                         EmailLinkSignInException.Unauthenticated  -> "User no authenticated"
-                        is EmailLinkSignInException.AuthException -> {
-                            signInException.exception.message!!
-                        }
+                        is EmailLinkSignInException.AuthException -> signInException.exception.message!!
                     }
                     toastShort(message)
                 }
             }
         }
+
+        authStateListener
 
         //endregion
     }

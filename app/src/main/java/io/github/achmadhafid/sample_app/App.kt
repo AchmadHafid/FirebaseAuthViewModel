@@ -20,3 +20,5 @@ class App : Application(), SimplePrefLifecycleOwner by SimplePrefApplication() {
     }
 
 }
+
+//TODO("Link & Unlink email password & email link")

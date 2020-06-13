@@ -10,7 +10,7 @@ import androidx.lifecycle.observe
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
-private class AuthStateLiveData(
+class AuthStateLiveData(
     private val lifecycle: Lifecycle,
     private val recyclerOnInactive: Boolean
 ) : LiveData<FirebaseUser?>(), LifecycleObserver, FirebaseAuth.AuthStateListener {
@@ -66,7 +66,7 @@ private class AuthStateLiveData(
 fun LifecycleOwner.observeFirebaseAuthState(
     recyclerOnInactive: Boolean = true,
     builder: AuthStateListener.() -> Unit
-) {
+): AuthStateListener {
     val listener = AuthStateListener().apply(builder)
     val authStateLiveData = AuthStateLiveData(lifecycle, recyclerOnInactive)
 
@@ -74,6 +74,8 @@ fun LifecycleOwner.observeFirebaseAuthState(
         if (user != null) listener.onSignInListener(user)
         else listener.onSignOutListener()
     }
+
+    return listener
 }
 
 fun Fragment.observeFirebaseAuthState(

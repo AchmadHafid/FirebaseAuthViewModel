@@ -2,11 +2,18 @@ package io.github.achmadhafid.sample_app
 
 import android.os.Bundle
 import androidx.lifecycle.observe
+import com.orhanobut.logger.Logger
+import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
+import io.github.achmadhafid.firebase_auth_view_model.observeFirebaseAuthState
+import io.github.achmadhafid.firebase_auth_view_model.onCredentialLinked
+import io.github.achmadhafid.firebase_auth_view_model.onCredentialUnlinked
+import io.github.achmadhafid.firebase_auth_view_model.onSignedIn
+import io.github.achmadhafid.firebase_auth_view_model.onSignedOut
 import io.github.achmadhafid.firebase_auth_view_model.signin.EmailLinkSignInException
 import io.github.achmadhafid.firebase_auth_view_model.signin.SignInState
 import io.github.achmadhafid.firebase_auth_view_model.signin.isFromEmailLink
 import io.github.achmadhafid.firebase_auth_view_model.signin.observeSignInByEmailLink
-import io.github.achmadhafid.firebase_auth_view_model.signin.signInWithEmailLink
+import io.github.achmadhafid.firebase_auth_view_model.signin.startSignInByEmailLink
 import io.github.achmadhafid.sample_app.auth.AnonymousSignInActivity
 import io.github.achmadhafid.sample_app.auth.EmailLinkSignInActivity
 import io.github.achmadhafid.sample_app.auth.EmailPasswordSignInActivity
@@ -27,8 +34,29 @@ class MainActivity : BaseActivity() {
     }
 
     //endregion
+    //region Auth State Listener
+
+    private val authStateListener by lazy {
+        observeFirebaseAuthState(authCallbackMode) {
+            onSignedIn {
+                Logger.d("User signed in")
+            }
+            onSignedOut {
+                Logger.d("User signed out")
+            }
+            onCredentialLinked {
+                Logger.d("Credential linked: $it")
+            }
+            onCredentialUnlinked {
+                Logger.d("Credential unlinked: $it")
+            }
+        }
+    }
+
+    //endregion
     //region Lifecycle Callback
 
+    @Suppress("ComplexMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -66,7 +94,7 @@ class MainActivity : BaseActivity() {
         //region observe sign in by email link progress
 
         observeSignInByEmailLink {
-            val (state, hasBeenConsumed) = it.getState()
+            val (_, state, hasBeenConsumed) = it.getEvent()
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
                 is SignInState.OnSuccess -> if (!hasBeenConsumed) {
@@ -90,10 +118,19 @@ class MainActivity : BaseActivity() {
         }
 
         if (isFromEmailLink) {
-            signInWithEmailLink()
+            startSignInByEmailLink(authStateListener = authStateListener)
         }
 
         //endregion
+    }
+
+    override fun onResume() {
+        super.onResume()
+        firebaseUser?.let { user ->
+            user.providerData.forEach {
+                Logger.d("Provider ID: ${it.providerId}")
+            }
+        }
     }
 
     //endregion
