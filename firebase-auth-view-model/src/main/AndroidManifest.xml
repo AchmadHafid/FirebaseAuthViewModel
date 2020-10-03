@@ -1,2 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.github.achmadhafid.firebase_auth_view_model" />
+<manifest package="io.github.achmadhafid.firebase_auth_view_model" />

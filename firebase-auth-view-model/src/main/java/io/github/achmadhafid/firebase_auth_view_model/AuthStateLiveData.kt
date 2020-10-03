@@ -5,8 +5,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.observe
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
@@ -70,10 +70,10 @@ fun LifecycleOwner.observeFirebaseAuthState(
     val listener = AuthStateListener().apply(builder)
     val authStateLiveData = AuthStateLiveData(lifecycle, recyclerOnInactive)
 
-    authStateLiveData.observe(this) { user ->
-        if (user != null) listener.onSignInListener(user)
+    authStateLiveData.observe(this, {
+        if (it != null) listener.onSignInListener(it)
         else listener.onSignOutListener()
-    }
+    })
 
     return listener
 }

@@ -1,7 +1,6 @@
 package io.github.achmadhafid.sample_app
 
 import android.os.Bundle
-import androidx.lifecycle.observe
 import com.orhanobut.logger.Logger
 import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
 import io.github.achmadhafid.firebase_auth_view_model.observeFirebaseAuthState

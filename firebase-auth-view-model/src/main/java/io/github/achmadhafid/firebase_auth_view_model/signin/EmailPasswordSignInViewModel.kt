@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.observe
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuthException
 import io.github.achmadhafid.firebase_auth_view_model.AuthStateListener

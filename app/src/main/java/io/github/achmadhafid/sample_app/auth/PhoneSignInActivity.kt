@@ -165,7 +165,9 @@ class PhoneSignInActivity : BaseActivity() {
         showTimeOutProgress = false
         withAnimation {
             fileRes         = R.raw.lottie_animation_loading
-            animationSpeed  = 2.0f
+            lottieAnimationProperties = {
+                speed = 2.0f
+            }
             showCloseButton = false
         }
         withTitle(R.string.dialog_phone_sign_in_progress_title)

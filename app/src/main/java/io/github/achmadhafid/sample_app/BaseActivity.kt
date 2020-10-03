@@ -43,7 +43,9 @@ abstract class BaseActivity: AppCompatActivity(), SimplePref {
         lottieLoadingDialog(Int.MAX_VALUE) {
             withAnimation {
                 fileRes = R.raw.lottie_animation_loading
-                animationSpeed = 2f
+                lottieAnimationProperties = {
+                    speed = 2.0f
+                }
             }
             withTitle("Please wait...")
         }

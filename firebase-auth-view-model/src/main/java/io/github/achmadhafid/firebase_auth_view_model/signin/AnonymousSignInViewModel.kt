@@ -3,7 +3,6 @@ package io.github.achmadhafid.firebase_auth_view_model.signin
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.observe
 import com.google.firebase.auth.FirebaseAuthException
 import io.github.achmadhafid.firebase_auth_view_model.AuthStateListener
 import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth

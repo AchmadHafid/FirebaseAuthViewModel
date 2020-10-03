@@ -107,13 +107,13 @@ class GoogleSignInActivity : BaseActivity() {
         with(binding) {
             btnLogin.onSingleClick {
                 startSignInByGoogle(
-                    webClientId.toString(),
+                    webClientId,
                     cbForceAccountChooser.isChecked
                 )
             }
             btnLink.onSingleClick {
                 linkGoogleAccountToCurrentUser(
-                    webClientId.toString(),
+                    webClientId,
                     cbForceAccountChooser.isChecked
                 )
             }
