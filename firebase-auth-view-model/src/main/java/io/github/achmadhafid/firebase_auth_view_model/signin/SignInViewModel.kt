@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.AuthResult
 import io.github.achmadhafid.firebase_auth_view_model.AuthStateListener
-import io.github.achmadhafid.zpack.extension.isConnected
+import io.github.achmadhafid.firebase_auth_view_model.isConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,7 +32,7 @@ internal abstract class SignInViewModel<E : SignInException> : ViewModel() {
 
         viewModelScope.launch {
             runCatching {
-                _event.value = SignInEvent(task, SignInState.OnProgress)
+                _event.value = SignInEvent(SignInState.OnProgress)
                 withContext(Dispatchers.IO) {
                     withTimeout(timeout) {
                         block()
@@ -57,11 +57,11 @@ internal abstract class SignInViewModel<E : SignInException> : ViewModel() {
             authStateListener.onCredentialUnlinkedListener(task.providerId)
         }
 
-        _event.postValue(SignInEvent(task, SignInState.OnSuccess(authResult)))
+        _event.postValue(SignInEvent(SignInState.OnSuccess(authResult)))
     }
 
-    protected fun onFailed(task: SignInTask, exception: E) {
-        _event.postValue(SignInEvent(task, SignInState.OnFailed(exception)))
+    protected fun onFailed(@Suppress("UNUSED_PARAMETER") task: SignInTask, exception: E) {
+        _event.postValue(SignInEvent(SignInState.OnFailed(exception)))
     }
 
     abstract val offlineException: E

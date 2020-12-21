@@ -17,9 +17,9 @@ import com.google.firebase.auth.GoogleAuthProvider
 import io.github.achmadhafid.firebase_auth_view_model.AuthStateListener
 import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
 import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
+import io.github.achmadhafid.firebase_auth_view_model.getViewModel
 import io.github.achmadhafid.firebase_auth_view_model.hasGoogleAuth
 import io.github.achmadhafid.firebase_auth_view_model.hasMultipleAuth
-import io.github.achmadhafid.zpack.extension.getViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 

@@ -12,24 +12,23 @@ import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
+import io.github.achmadhafid.firebase_auth_view_model.getViewModel
+import io.github.achmadhafid.firebase_auth_view_model.isConnected
 import io.github.achmadhafid.firebase_auth_view_model.signin.PhoneSignInException
-import io.github.achmadhafid.zpack.extension.getViewModel
-import io.github.achmadhafid.zpack.extension.isConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 internal class PhoneSignInViewModel : ViewModel() {
 
-    private val executor = Executors.newFixedThreadPool(1)
-    private val phoneAuthProvider = PhoneAuthProvider.getInstance()
+    private val auth by lazy { firebaseAuth }
     private val phoneAuthCallback =
         object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onCodeSent(verId: String, token: PhoneAuthProvider.ForceResendingToken) {
@@ -69,11 +68,12 @@ internal class PhoneSignInViewModel : ViewModel() {
     }
 
     private fun signInWithCredential(credential: PhoneAuthCredential) {
+        setState(PhoneSignInState.SigningIn)
         viewModelScope.launch {
             runCatching {
                 withContext(Dispatchers.IO) {
                     withTimeout(timeout) {
-                        firebaseAuth.signInWithCredential(credential).await()
+                        auth.signInWithCredential(credential).await()
                     }
                 }
             }.onSuccess {
@@ -87,7 +87,6 @@ internal class PhoneSignInViewModel : ViewModel() {
                 onFailed(exception)
             }
         }
-        setState(PhoneSignInState.SigningIn)
     }
 
     internal fun start(
@@ -101,13 +100,16 @@ internal class PhoneSignInViewModel : ViewModel() {
         setState(PhoneSignInState.GetPhoneInput())
     }
 
-    internal fun submitPhone(phone: String, context: Context) {
-        if (true == context.isConnected) {
-            firebaseAuth.setLanguageCode(languageCode)
-            phoneAuthProvider.verifyPhoneNumber(
-                phone,
-                timeout, TimeUnit.MILLISECONDS,
-                executor, phoneAuthCallback
+    internal fun submitPhone(activity: AppCompatActivity, phone: String) {
+        if (activity.isConnected) {
+            auth.setLanguageCode(languageCode)
+            PhoneAuthProvider.verifyPhoneNumber(
+                PhoneAuthOptions.newBuilder(auth)
+                    .setPhoneNumber(phone)
+                    .setTimeout(timeout, TimeUnit.MILLISECONDS)
+                    .setActivity(activity)
+                    .setCallbacks(phoneAuthCallback)
+                    .build()
             )
             setState(PhoneSignInState.RequestingOtp)
         } else {
@@ -116,7 +118,7 @@ internal class PhoneSignInViewModel : ViewModel() {
     }
 
     internal fun submitOtp(otp: String, context: Context) {
-        if (true == context.isConnected) {
+        if (context.isConnected) {
             signInWithCredential(PhoneAuthProvider.getCredential(verificationId!!, otp))
         } else {
             onFailed(PhoneSignInException.Offline)
@@ -125,11 +127,6 @@ internal class PhoneSignInViewModel : ViewModel() {
 
     internal fun cancel() {
         onFailed(PhoneSignInException.Canceled)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        executor.shutdownNow()
     }
 
 }
@@ -150,7 +147,7 @@ fun AppCompatActivity.startSignInByPhone(
 }
 
 fun AppCompatActivity.onSignInByPhoneSubmitPhone(phone: String) {
-    signInViewModel.submitPhone(phone, this)
+    signInViewModel.submitPhone(this, phone)
 }
 
 fun AppCompatActivity.onSignInByPhoneSubmitOtp(otp: String) {
@@ -177,7 +174,7 @@ fun Fragment.startSignInByPhone(
 }
 
 fun Fragment.onSignInByPhoneSubmitPhone(phone: String) {
-    signInViewModel.submitPhone(phone, requireContext())
+    signInViewModel.submitPhone(requireActivity() as AppCompatActivity, phone)
 }
 
 fun Fragment.onSignInByPhoneSubmitOtp(otp: String) {

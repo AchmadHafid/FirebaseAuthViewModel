@@ -18,10 +18,9 @@ import io.github.achmadhafid.sample_app.R
 import io.github.achmadhafid.sample_app.databinding.ActivityEmailLinkSignInBinding
 import io.github.achmadhafid.zpack.extension.toastShort
 import io.github.achmadhafid.zpack.extension.view.gone
-import io.github.achmadhafid.zpack.extension.view.onSingleClick
-import io.github.achmadhafid.zpack.extension.view.setTextRes
 import io.github.achmadhafid.zpack.extension.view.value
 import io.github.achmadhafid.zpack.extension.view.visible
+import io.github.achmadhafid.zpack.extension.view.withTextRes
 import kotlinx.coroutines.launch
 
 class EmailLinkSignInActivity : BaseActivity() {
@@ -40,14 +39,14 @@ class EmailLinkSignInActivity : BaseActivity() {
             onSignedIn {
                 Logger.d("User signed in")
                 with(binding) {
-                    btnAuth.setTextRes(R.string.logout)
+                    btnAuth withTextRes R.string.logout
                     inputLayoutEmail.gone()
                 }
             }
             onSignedOut {
                 Logger.d("User signed out")
                 with(binding) {
-                    btnAuth.setTextRes(R.string.btn_send_sign_in_link_to_email)
+                    btnAuth withTextRes R.string.btn_send_sign_in_link_to_email
                     inputLayoutEmail.visible()
                 }
             }
@@ -69,7 +68,7 @@ class EmailLinkSignInActivity : BaseActivity() {
         //endregion
         //region setup action widget
 
-        binding.btnAuth.onSingleClick {
+        binding.btnAuth.setOnClickListener {
             firebaseUser?.let {
                 firebaseAuth.signOut()
             } ?: lifecycleScope.launch {
@@ -92,7 +91,7 @@ class EmailLinkSignInActivity : BaseActivity() {
         //region observe sign in progress
 
         observeSignInByEmailLink {
-            val (_, state, hasBeenConsumed) = it.getEvent()
+            val (state, hasBeenConsumed) = it.getEvent()
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
                 is SignInState.OnSuccess -> if (!hasBeenConsumed) {
@@ -102,12 +101,12 @@ class EmailLinkSignInActivity : BaseActivity() {
                 is SignInState.OnFailed -> if (!hasBeenConsumed) {
                     dismissDialog()
                     val message = when (val signInException = state.exception) {
-                        EmailLinkSignInException.Unknown          -> "Unknown"
-                        EmailLinkSignInException.Offline          -> "Internet connection unavailable"
-                        EmailLinkSignInException.Timeout          -> "Connection time out"
-                        EmailLinkSignInException.InvalidLink      -> "Invalid Link"
-                        EmailLinkSignInException.NoEmailFound     -> "No Email Found"
-                        EmailLinkSignInException.Unauthenticated  -> "User no authenticated"
+                        EmailLinkSignInException.Unknown -> "Unknown"
+                        EmailLinkSignInException.Offline -> "Internet connection unavailable"
+                        EmailLinkSignInException.Timeout -> "Connection time out"
+                        EmailLinkSignInException.InvalidLink -> "Invalid Link"
+                        EmailLinkSignInException.NoEmailFound -> "No Email Found"
+                        EmailLinkSignInException.Unauthenticated -> "User no authenticated"
                         is EmailLinkSignInException.AuthException -> signInException.exception.message!!
                     }
                     toastShort(message)

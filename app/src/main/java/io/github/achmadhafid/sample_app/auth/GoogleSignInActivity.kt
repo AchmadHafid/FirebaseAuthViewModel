@@ -24,7 +24,6 @@ import io.github.achmadhafid.sample_app.databinding.ActivityGoogleSignInBinding
 import io.github.achmadhafid.zpack.extension.stringRes
 import io.github.achmadhafid.zpack.extension.toastShort
 import io.github.achmadhafid.zpack.extension.view.gone
-import io.github.achmadhafid.zpack.extension.view.onSingleClick
 import io.github.achmadhafid.zpack.extension.view.visible
 import io.github.achmadhafid.zpack.extension.view.visibleOrGone
 
@@ -105,22 +104,22 @@ class GoogleSignInActivity : BaseActivity() {
         //region setup action widget
 
         with(binding) {
-            btnLogin.onSingleClick {
+            btnLogin.setOnClickListener {
                 startSignInByGoogle(
                     webClientId,
                     cbForceAccountChooser.isChecked
                 )
             }
-            btnLink.onSingleClick {
+            btnLink.setOnClickListener {
                 linkGoogleAccountToCurrentUser(
                     webClientId,
                     cbForceAccountChooser.isChecked
                 )
             }
-            btnUnlink.onSingleClick {
+            btnUnlink.setOnClickListener {
                 unlinkGoogleAccountFromCurrentUser(authStateListener)
             }
-            btnLogout.onSingleClick {
+            btnLogout.setOnClickListener {
                 firebaseAuth.signOut()
             }
         }
@@ -129,7 +128,7 @@ class GoogleSignInActivity : BaseActivity() {
         //region observe sign in progress
 
         observeSignInByGoogle {
-            val (_, state, hasBeenConsumed) = it.getEvent()
+            val (state, hasBeenConsumed) = it.getEvent()
             when (state) {
                 SignInState.OnProgress -> {
                     showLoadingDialog()

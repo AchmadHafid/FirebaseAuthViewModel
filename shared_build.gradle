@@ -49,12 +49,11 @@ dependencies {
     implementation deps.activity
     implementation deps.fragment
 
+    implementation platform(deps.firebase)
     implementation deps.firebase_common
     implementation deps.firebase_auth
 
     implementation deps.gps_auth
-
-    implementation deps.zpack
 
     testImplementation deps.test_core
     testImplementation deps.test_runner

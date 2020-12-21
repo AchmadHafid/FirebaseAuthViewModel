@@ -1,14 +1,14 @@
 package io.github.achmadhafid.firebase_auth_view_model.signin
 
-class SignInEvent<out E : SignInException>(
-    private val task: SignInTask,
+class SignInEvent<out E : SignInException> internal constructor(
     private val state: SignInState<E>
 ) {
 
     private var hasBeenConsumed = false
 
-    fun getEvent(isConsumed: Boolean = true) = Triple(task, state, hasBeenConsumed).also {
-        if (isConsumed) hasBeenConsumed = true
+    fun getEvent(isConsumed: Boolean = true) = hasBeenConsumed.let {
+        hasBeenConsumed = it || isConsumed
+        state to it
     }
 
 }

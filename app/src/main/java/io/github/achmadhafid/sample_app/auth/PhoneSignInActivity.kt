@@ -29,21 +29,20 @@ import io.github.achmadhafid.sample_app.R
 import io.github.achmadhafid.sample_app.databinding.ActivityPhoneSignInBinding
 import io.github.achmadhafid.zpack.extension.intRes
 import io.github.achmadhafid.zpack.extension.toastShort
-import io.github.achmadhafid.zpack.extension.view.onSingleClick
-import io.github.achmadhafid.zpack.extension.view.setTextRes
+import io.github.achmadhafid.zpack.extension.view.withTextRes
 
 class PhoneSignInActivity : BaseActivity() {
 
+    //region Resource Binding
+
+    private val timeout by intRes(R.integer.phone_sign_in_timeout)
+
+    //endregion
     //region View Binding
 
     private val binding by lazy {
         ActivityPhoneSignInBinding.inflate(layoutInflater)
     }
-
-    //endregion
-    //region Resource Binding
-
-    private val timeout by intRes(R.integer.phone_sign_in_timeout)
 
     //endregion
     //region Lifecycle Callback
@@ -60,12 +59,12 @@ class PhoneSignInActivity : BaseActivity() {
         //endregion
         //region setup auth button
 
-        binding.btnAuth.onSingleClick {
+        binding.btnAuth.setOnClickListener {
             firebaseUser?.let {
                 firebaseAuth.signOut()
             } ?: run {
                 val initialPhone = getString(R.string.dialog_phone_sign_in_input_phone_pre_fill)
-                val languageCode = "en"
+                val languageCode = "id"
                 startSignInByPhone(initialPhone, languageCode, timeout.toLong())
             }
         }
@@ -76,11 +75,11 @@ class PhoneSignInActivity : BaseActivity() {
         observeFirebaseAuthState(authCallbackMode) {
             onSignedIn {
                 Logger.d("User signed in")
-                binding.btnAuth.setTextRes(R.string.logout)
+                binding.btnAuth withTextRes R.string.logout
             }
             onSignedOut {
                 Logger.d("User signed out")
-                binding.btnAuth.setTextRes(R.string.login)
+                binding.btnAuth withTextRes R.string.login
             }
         }
 
@@ -91,25 +90,25 @@ class PhoneSignInActivity : BaseActivity() {
             val (state, hasBeenConsumed) = it.state
             when (state) {
                 is PhoneSignInState.GetPhoneInput -> showInputPhoneDialog(state.phone)
-                is PhoneSignInState.GetOtpInput   -> showInputOtpDialog()
-                PhoneSignInState.RequestingOtp,
-                PhoneSignInState.SigningIn        -> showProgressDialog()
-                PhoneSignInState.OnSuccess        -> {
+                PhoneSignInState.RequestingOtp -> showProgressDialog()
+                is PhoneSignInState.GetOtpInput -> showInputOtpDialog()
+                PhoneSignInState.SigningIn -> showProgressDialog()
+                PhoneSignInState.OnSuccess -> {
                     dismissDialog()
                     toastShort("Phone sign in success!")
                 }
                 is PhoneSignInState.OnFailed -> if (!hasBeenConsumed) {
                     dismissDialog()
                     val message = when (val signInException = state.exception) {
-                        PhoneSignInException.Canceled          -> "Canceled"
-                        PhoneSignInException.Unknown           -> "Unknown"
-                        PhoneSignInException.Offline           -> "No internet connection"
+                        PhoneSignInException.Canceled -> "Canceled"
+                        PhoneSignInException.Unknown -> "Unknown"
+                        PhoneSignInException.Offline -> "No internet connection"
                         PhoneSignInException.RequestOtpTimeout -> "Timeout when requesting OTP code"
-                        PhoneSignInException.SignInTimeout     -> "Time out when signing in"
-                        PhoneSignInException.InvalidRequest    -> "Invalid (phone number) request"
-                        PhoneSignInException.QuotaExceeded     -> "Quota exceeded"
-                        is PhoneSignInException.InvalidOtp     -> "Invalid OTP"
-                        is PhoneSignInException.AuthException  -> signInException.exception.message
+                        PhoneSignInException.SignInTimeout -> "Time out when signing in"
+                        PhoneSignInException.InvalidRequest -> "Invalid (phone number) request"
+                        PhoneSignInException.QuotaExceeded -> "Quota exceeded"
+                        is PhoneSignInException.InvalidOtp -> "Invalid OTP"
+                        is PhoneSignInException.AuthException -> signInException.exception.message
                     }
                     toastShort("Phone sign in error: $message")
                 }
@@ -122,13 +121,14 @@ class PhoneSignInActivity : BaseActivity() {
     //endregion
     //region Dialog Helper for Sign In Flow
 
-    private fun showInputPhoneDialog(phone: String?) = lottieInputDialog(Int.MAX_VALUE) {
+    @Suppress("MagicNumber")
+    private fun showInputPhoneDialog(phone: String?) = lottieInputDialog(0) {
         withAnimation(R.raw.lottie_animation_phone)
         withTitle(R.string.dialog_phone_sign_in_input_phone_title)
         withContent(R.string.dialog_phone_sign_in_input_phone_content)
         withInputSpec {
-            inputType    = LottieDialogInput.Type.PHONE
-            inputFormat  = getString(R.string.dialog_phone_sign_in_input_phone_format)
+            inputType = LottieDialogInput.Type.PHONE
+            inputFormat = getString(R.string.dialog_phone_sign_in_input_phone_format)
             initialValue = phone
         }
         withCancelOption {
@@ -142,12 +142,13 @@ class PhoneSignInActivity : BaseActivity() {
         }
     }
 
-    private fun showInputOtpDialog() = lottieInputDialog(Int.MAX_VALUE) {
+    @Suppress("MagicNumber")
+    private fun showInputOtpDialog() = lottieInputDialog(0) {
         withAnimation(R.raw.lottie_animation_input_password)
         withTitle(R.string.dialog_phone_sign_in_input_otp_title)
         withContent(R.string.dialog_phone_sign_in_input_otp_content)
         withInputSpec {
-            inputType   = LottieDialogInput.Type.PHONE
+            inputType = LottieDialogInput.Type.PHONE
             inputFormat = getString(R.string.dialog_phone_sign_in_input_otp_format)
         }
         withCancelOption {
@@ -161,10 +162,11 @@ class PhoneSignInActivity : BaseActivity() {
         }
     }
 
-    private fun showProgressDialog() = lottieLoadingDialog(Int.MAX_VALUE) {
+    @Suppress("MagicNumber")
+    private fun showProgressDialog() = lottieLoadingDialog(0) {
         showTimeOutProgress = false
         withAnimation {
-            fileRes         = R.raw.lottie_animation_loading
+            fileRes = R.raw.lottie_animation_loading
             lottieAnimationProperties = {
                 speed = 2.0f
             }
@@ -172,7 +174,7 @@ class PhoneSignInActivity : BaseActivity() {
         }
         withTitle(R.string.dialog_phone_sign_in_progress_title)
         withCancelOption {
-            onBackPressed  = false
+            onBackPressed = false
             onTouchOutside = false
         }
     }

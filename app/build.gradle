@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 apply(from: "../shared_build.gradle")
 
@@ -35,6 +34,7 @@ dependencies {
     implementation deps.simple_pref
     implementation deps.lottie
     implementation deps.lottie_dialog
+    implementation deps.zpack
 }
 
 apply plugin: 'com.google.gms.google-services'

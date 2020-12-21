@@ -21,7 +21,6 @@ import io.github.achmadhafid.sample_app.databinding.ActivityEmailPasswordSignInB
 import io.github.achmadhafid.zpack.extension.toastShort
 import io.github.achmadhafid.zpack.extension.view.enabled
 import io.github.achmadhafid.zpack.extension.view.gone
-import io.github.achmadhafid.zpack.extension.view.onSingleClick
 import io.github.achmadhafid.zpack.extension.view.value
 import io.github.achmadhafid.zpack.extension.view.visibleOrGone
 
@@ -82,31 +81,31 @@ class EmailPasswordSignInActivity : BaseActivity() {
         //region setup action widget
 
         with(binding) {
-            btnCreateUser.onSingleClick {
+            btnCreateUser.setOnClickListener {
                 with(binding.edtEmail.value to binding.edtPassword.value) {
                     if (first.isNotEmpty() && second.isNotEmpty()) {
                         createUserByEmailPassword(first, second, authStateListener)
                     }
                 }
             }
-            btnSignIn.onSingleClick {
+            btnSignIn.setOnClickListener {
                 with(binding.edtEmail.value to binding.edtPassword.value) {
                     if (first.isNotEmpty() && second.isNotEmpty()) {
                         startSignInByEmailPassword(first, second, authStateListener)
                     }
                 }
             }
-            btnLinkCredential.onSingleClick {
+            btnLinkCredential.setOnClickListener {
                 with(binding.edtEmail.value to binding.edtPassword.value) {
                     if (first.isNotEmpty() && second.isNotEmpty()) {
                         linkEmailPasswordToCurrentUser(first, second, authStateListener)
                     }
                 }
             }
-            btnUnlinkCredential.onSingleClick {
+            btnUnlinkCredential.setOnClickListener {
                 TODO("TBI")
             }
-            btnSignOut.onSingleClick {
+            btnSignOut.setOnClickListener {
                 firebaseAuth.signOut()
             }
         }
@@ -115,7 +114,7 @@ class EmailPasswordSignInActivity : BaseActivity() {
         //region observe sign in progress
 
         observeSignInByEmailPassword {
-            val (_, state, hasBeenConsumed) = it.getEvent()
+            val (state, hasBeenConsumed) = it.getEvent()
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
                 is SignInState.OnSuccess -> if (!hasBeenConsumed) {

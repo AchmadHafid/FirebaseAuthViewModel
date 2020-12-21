@@ -15,7 +15,7 @@ import com.google.firebase.auth.SignInMethodQueryResult
 import io.github.achmadhafid.firebase_auth_view_model.AuthStateListener
 import io.github.achmadhafid.firebase_auth_view_model.firebaseAuth
 import io.github.achmadhafid.firebase_auth_view_model.firebaseUser
-import io.github.achmadhafid.zpack.extension.getViewModel
+import io.github.achmadhafid.firebase_auth_view_model.getViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await

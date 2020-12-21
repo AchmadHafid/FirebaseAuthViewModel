@@ -22,7 +22,6 @@ import io.github.achmadhafid.sample_app.databinding.ActivityMainBinding
 import io.github.achmadhafid.simplepref.livedata.simplePrefLiveData
 import io.github.achmadhafid.zpack.extension.intent
 import io.github.achmadhafid.zpack.extension.toastShort
-import io.github.achmadhafid.zpack.extension.view.onSingleClick
 
 class MainActivity : BaseActivity() {
 
@@ -62,19 +61,19 @@ class MainActivity : BaseActivity() {
         setSupportActionBar(binding.toolbar)
         //region setup view
 
-        binding.btnAnonymousSignInDemo.onSingleClick {
+        binding.btnAnonymousSignInDemo.setOnClickListener {
             startActivity(intent<AnonymousSignInActivity>())
         }
-        binding.btnGoogleSignInDemo.onSingleClick {
+        binding.btnGoogleSignInDemo.setOnClickListener {
             startActivity(intent<GoogleSignInActivity>())
         }
-        binding.btnEmailPasswordSignInDemo.onSingleClick {
+        binding.btnEmailPasswordSignInDemo.setOnClickListener {
             startActivity(intent<EmailPasswordSignInActivity>())
         }
-        binding.btnEmailLinkSignInDemo.onSingleClick {
+        binding.btnEmailLinkSignInDemo.setOnClickListener {
             startActivity(intent<EmailLinkSignInActivity>())
         }
-        binding.btnPhoneSignInDemo.onSingleClick {
+        binding.btnPhoneSignInDemo.setOnClickListener {
             startActivity(intent<PhoneSignInActivity>())
         }
 
@@ -93,7 +92,7 @@ class MainActivity : BaseActivity() {
         //region observe sign in by email link progress
 
         observeSignInByEmailLink {
-            val (_, state, hasBeenConsumed) = it.getEvent()
+            val (state, hasBeenConsumed) = it.getEvent()
             when (state) {
                 SignInState.OnProgress -> showLoadingDialog()
                 is SignInState.OnSuccess -> if (!hasBeenConsumed) {

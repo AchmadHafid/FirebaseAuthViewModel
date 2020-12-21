@@ -2,7 +2,7 @@ package io.github.achmadhafid.firebase_auth_view_model
 
 import com.google.firebase.auth.FirebaseUser
 
-data class AuthStateListener(
+data class AuthStateListener internal constructor(
     internal var onSignInListener: (FirebaseUser) -> Unit = {},
     internal var onSignOutListener: () -> Unit = {},
     internal var onCredentialLinkedListener: (providerId: String) -> Unit = {},

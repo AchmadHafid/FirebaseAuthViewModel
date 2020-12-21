@@ -5,12 +5,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.OnLifecycleEvent
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
-class AuthStateLiveData(
+class AuthStateLiveData internal constructor(
     private val lifecycle: Lifecycle,
     private val recyclerOnInactive: Boolean
 ) : LiveData<FirebaseUser?>(), LifecycleObserver, FirebaseAuth.AuthStateListener {
